@@ -59,38 +59,17 @@ public class StudentController {
 
     @PostMapping("/skills/{id}")
     public ResponseEntity<Student> addStudentSkill(@PathVariable String id, @RequestBody List<String> skills) {
-        if (!studentService.getStudentByUsername(id.toUpperCase()).isPresent()) {
-            throw new RuntimeException("Student not found for id : "+id.toUpperCase());
-        }
-        Student student = studentService.getStudentByUsername(id.toUpperCase()).get();
-
-        Set<Skills> skillsList = student.getSkills();
-        Set<Skills> tempList = student.getSkills();
-        if(skillsList == null) {
-            skillsList = new HashSet<>();
-        }
-        skills.forEach(skill -> {
-            if(skillsRepository.findByName(skill) == null) {
-                Skills newSkill = new Skills(skill);
-                Skills savedSkill = skillsRepository.save(newSkill);
-                tempList.add(savedSkill);
-            }
-            else{
-                Skills getSavedSkill = skillsRepository.findByName(skill);
-                tempList.add(getSavedSkill);
-            }
-        });
-        if(tempList != null) {
-            skillsList.addAll(tempList);
-        }
-        student.setSkills(skillsList);
-
-        return new ResponseEntity<>(studentService.saveStudent(student), HttpStatus.OK);
+        return new ResponseEntity<>(studentService.addStudentSkill(id,skills), HttpStatus.OK);
     }
 
     @GetMapping("/skills/{username}")
     public ResponseEntity<Set<Skills>> getStudentSkills(@PathVariable String username) {
         return ResponseEntity.ok(studentService.getStudentSkills(username));
+    }
+
+    @DeleteMapping("/skills/{id}/{skill}")
+    public ResponseEntity<Set<Skills>> deleteStudentSkill(@PathVariable String id, @PathVariable String skill) {
+        return ResponseEntity.ok(studentService.deleteStudentSkill(id,skill));
     }
 }
 

@@ -6,11 +6,13 @@ import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Student.Skills;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.repository.Group.GroupRepository;
+import com.example.UserManagementModule.repository.Skills.SkillsRepository;
 import com.example.UserManagementModule.repository.Student.StudentRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,10 +22,12 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final GroupRepository groupRepository;
+    private final SkillsRepository skillsRepository;
 
-    public StudentService(StudentRepository studentRepository, GroupRepository groupRepository) {
+    public StudentService(StudentRepository studentRepository, GroupRepository groupRepository, SkillsRepository skillsRepository) {
         this.studentRepository = studentRepository;
         this.groupRepository = groupRepository;
+        this.skillsRepository = skillsRepository;
     }
 
     public void createStudent(StudentResgisterRequest studentRequest) {
@@ -71,7 +75,46 @@ public class StudentService {
         return groupRepository.findGroupsByStudentId(sid.toLowerCase());
     }
 
+    public Student addStudentSkill(String id, List<String> skills) {
+        if (!this.getStudentByUsername(id.toUpperCase()).isPresent()) {
+            throw new RuntimeException("Student not found for id : "+id.toUpperCase());
+        }
+        Student student = this.getStudentByUsername(id.toUpperCase()).get();
+
+        Set<Skills> skillsList = student.getSkills();
+        Set<Skills> tempList = student.getSkills();
+        if(skillsList == null) {
+            skillsList = new HashSet<>();
+        }
+        skills.forEach(skill -> {
+            if(skillsRepository.findByName(skill) == null) {
+                Skills newSkill = new Skills(skill.toLowerCase());
+                Skills savedSkill = skillsRepository.save(newSkill);
+                tempList.add(savedSkill);
+            }
+            else{
+                Skills getSavedSkill = skillsRepository.findByName(skill);
+                tempList.add(getSavedSkill);
+            }
+        });
+        if(tempList != null) {
+            skillsList.addAll(tempList);
+        }
+        student.setSkills(skillsList);
+
+        return studentRepository.save(student);
+    }
+
     public Set<Skills> getStudentSkills(String username) {
         return studentRepository.findByUsername(username).get().getSkills();
+    }
+
+    public Set<Skills> deleteStudentSkill(String id, String skill) {
+        Student student = studentRepository.findByUsername(id).get();
+        Set<Skills> skills = student.getSkills();
+        Skills savedSkills = skillsRepository.findByName(skill.toLowerCase());
+        skills.remove(savedSkills);
+        Student savedStudent = studentRepository.save(student);
+        return savedStudent.getSkills();
     }
 }
