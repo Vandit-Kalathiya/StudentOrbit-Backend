@@ -3,6 +3,7 @@ package com.example.UserManagementModule.service.Student;
 
 import com.example.UserManagementModule.dto.Student.StudentResgisterRequest;
 import com.example.UserManagementModule.entity.Groups.Group;
+import com.example.UserManagementModule.entity.Student.Skills;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.repository.Group.GroupRepository;
 import com.example.UserManagementModule.repository.Student.StudentRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class StudentService {
@@ -67,5 +69,9 @@ public class StudentService {
 
     public List<Group> getStudentGroups(String sid) {
         return groupRepository.findGroupsByStudentId(sid.toLowerCase());
+    }
+
+    public Set<Skills> getStudentSkills(String username) {
+        return studentRepository.findByUsername(username).get().getSkills();
     }
 }

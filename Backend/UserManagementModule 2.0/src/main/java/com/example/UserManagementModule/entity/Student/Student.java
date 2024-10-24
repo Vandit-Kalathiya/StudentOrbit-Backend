@@ -1,11 +1,8 @@
 package com.example.UserManagementModule.entity.Student;
 
 import com.example.UserManagementModule.entity.Faculty.Faculty;
-import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Providers;
 import com.example.UserManagementModule.entity.Role;
-import com.example.UserManagementModule.entity.Task.Task;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -64,7 +61,13 @@ public class Student implements UserDetails {
 
     private String linkedInUrl;
 
-    private Set<String> skills;
+    @ManyToMany
+    @JoinTable(
+            name = "student_skills",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id")
+    )
+    private Set<Skills> skills;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Faculty mentor;

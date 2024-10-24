@@ -1,17 +1,16 @@
 package com.example.UserManagementModule.controller.Student;
 
 import com.example.UserManagementModule.entity.Groups.Group;
+import com.example.UserManagementModule.entity.Student.Skills;
 import com.example.UserManagementModule.entity.Student.Student;
+import com.example.UserManagementModule.repository.Skills.SkillsRepository;
 import com.example.UserManagementModule.service.Student.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/students")
@@ -19,6 +18,8 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
+    @Autowired
+    private SkillsRepository skillsRepository;
 
     @GetMapping("/allStudents")
     public ResponseEntity<List<Student>> getAllStudents() {
@@ -58,19 +59,38 @@ public class StudentController {
 
     @PostMapping("/skills/{id}")
     public ResponseEntity<Student> addStudentSkill(@PathVariable String id, @RequestBody List<String> skills) {
-        if (!studentService.getStudentById(id).isPresent()) {
-            throw new RuntimeException("Student not found for id : "+id);
+        if (!studentService.getStudentByUsername(id.toUpperCase()).isPresent()) {
+            throw new RuntimeException("Student not found for id : "+id.toUpperCase());
         }
-        Student student = studentService.getStudentById(id).get();
-        Set<String> savedSkills = student.getSkills();
-        if(savedSkills == null){
-            savedSkills = new HashSet<>();
+        Student student = studentService.getStudentByUsername(id.toUpperCase()).get();
+
+        Set<Skills> skillsList = student.getSkills();
+        Set<Skills> tempList = student.getSkills();
+        if(skillsList == null) {
+            skillsList = new HashSet<>();
         }
-        savedSkills.addAll(skills);
-        student.setSkills(savedSkills);
+        skills.forEach(skill -> {
+            if(skillsRepository.findByName(skill) == null) {
+                Skills newSkill = new Skills(skill);
+                Skills savedSkill = skillsRepository.save(newSkill);
+                tempList.add(savedSkill);
+            }
+            else{
+                Skills getSavedSkill = skillsRepository.findByName(skill);
+                tempList.add(getSavedSkill);
+            }
+        });
+        if(tempList != null) {
+            skillsList.addAll(tempList);
+        }
+        student.setSkills(skillsList);
 
         return new ResponseEntity<>(studentService.saveStudent(student), HttpStatus.OK);
     }
 
+    @GetMapping("/skills/{username}")
+    public ResponseEntity<Set<Skills>> getStudentSkills(@PathVariable String username) {
+        return ResponseEntity.ok(studentService.getStudentSkills(username));
+    }
 }
 
