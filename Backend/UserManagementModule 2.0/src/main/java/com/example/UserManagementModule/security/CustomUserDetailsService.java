@@ -33,19 +33,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		System.out.println("Student Security : " + username);
+//		System.out.println("Student Security : " + username);
 
 		Optional<Student> studentOpt = studentRepository.findByUsername(username);
 //		System.out.println(studentOpt.get().getEmail());
 		if (studentOpt.isPresent()) {
-			System.out.println("Security done using student...");
+//			System.out.println("Security done using student...");
 			return studentOpt.get();
 		}
 
 		Optional<Faculty> facultyOpt = facultyRepository.findByUsername(username);
 //		System.out.println(facultyOpt.get().getEmail());
 		if (facultyOpt.isPresent()) {
-			System.out.println("Security done using faculty...");
+//			System.out.println("Security done using faculty...");
 			return facultyOpt.get();
 		}
 

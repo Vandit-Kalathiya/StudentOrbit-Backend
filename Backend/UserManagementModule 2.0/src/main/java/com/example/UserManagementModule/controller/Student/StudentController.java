@@ -1,5 +1,6 @@
 package com.example.UserManagementModule.controller.Student;
 
+import com.example.UserManagementModule.dto.Student.ProfileUpdateRequest;
 import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Student.Skills;
 import com.example.UserManagementModule.entity.Student.Student;
@@ -21,6 +22,8 @@ public class StudentController {
     @Autowired
     private SkillsRepository skillsRepository;
 
+
+
     @GetMapping("/allStudents")
     public ResponseEntity<List<Student>> getAllStudents() {
         List<Student> students = studentService.getAllStudents();
@@ -30,6 +33,12 @@ public class StudentController {
     @GetMapping("/{id}")
     public ResponseEntity<Student> getStudentById(@PathVariable String id) {
         Optional<Student> student = studentService.getStudentById(id);
+        return student.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/u/{username}")
+    public ResponseEntity<Student> getStudentByUsername(@PathVariable String username) {
+        Optional<Student> student = studentService.getStudentByUsername(username);
         return student.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -70,6 +79,11 @@ public class StudentController {
     @DeleteMapping("/skills/{id}/{skill}")
     public ResponseEntity<Set<Skills>> deleteStudentSkill(@PathVariable String id, @PathVariable String skill) {
         return ResponseEntity.ok(studentService.deleteStudentSkill(id,skill));
+    }
+
+    @PutMapping("/profile/{username}")
+    public ResponseEntity<Student> updateStudentProfile(@PathVariable String username, @RequestBody ProfileUpdateRequest profileUpdateRequest) {
+        return ResponseEntity.ok(studentService.updateStudentProfile(username,profileUpdateRequest));
     }
 }
 

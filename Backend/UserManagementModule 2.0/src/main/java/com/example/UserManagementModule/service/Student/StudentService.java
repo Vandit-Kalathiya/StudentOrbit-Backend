@@ -1,6 +1,7 @@
 package com.example.UserManagementModule.service.Student;
 
 
+import com.example.UserManagementModule.dto.Student.ProfileUpdateRequest;
 import com.example.UserManagementModule.dto.Student.StudentResgisterRequest;
 import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Student.Skills;
@@ -116,5 +117,13 @@ public class StudentService {
         skills.remove(savedSkills);
         Student savedStudent = studentRepository.save(student);
         return savedStudent.getSkills();
+    }
+
+    public Student updateStudentProfile(String username, ProfileUpdateRequest profileUpdateRequest) {
+        Student student = studentRepository.findByUsername(username).get();
+        student.setGitHubUrl(profileUpdateRequest.getGitHubUrl());
+        student.setLinkedInUrl(profileUpdateRequest.getLinkedInUrl());
+        saveStudent(student);
+        return student;
     }
 }
