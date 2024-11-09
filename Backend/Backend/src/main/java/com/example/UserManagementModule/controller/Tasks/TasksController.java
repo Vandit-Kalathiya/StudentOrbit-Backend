@@ -76,4 +76,14 @@ public class TasksController {
     public ResponseEntity<List<Comment>> getCommentsOfTask(@PathVariable String id) {
         return ResponseEntity.ok(taskService.getCommentsOfTask(id));
     }
+
+    @GetMapping("/count/{studentId}")
+    public ResponseEntity<Long> getTaskCount(@PathVariable String studentId) {
+        return ResponseEntity.ok(taskService.countTasksByStudentId(studentId));
+    }
+
+    @GetMapping("/count/{studentId}/{status}")
+    public ResponseEntity<Long> getCountTasksByStudentIdAndStatus(@PathVariable String studentId, @PathVariable String status) {
+        return ResponseEntity.ok(taskService.countTasksByStudentIdAndStatus(studentId, status));
+    }
 }

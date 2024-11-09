@@ -143,6 +143,10 @@ public class StudentService {
         return groupRepository.findGroupsByStudentId(sid.toLowerCase());
     }
 
+    public List<Group> getStudentGroupsByProjectStatus(String sid) {
+        return groupRepository.findGroupsByStudentIdAndProjectStatus(sid.toLowerCase());
+    }
+
     @CacheEvict(value = "students", key = "#id")
     public Student addStudentSkill(String id, List<String> skills) {
         if (!this.getStudentByUsername(id.toUpperCase()).isPresent()) {

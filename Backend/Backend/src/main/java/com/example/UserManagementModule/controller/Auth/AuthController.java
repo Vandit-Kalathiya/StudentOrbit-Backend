@@ -26,7 +26,7 @@ public class AuthController {
     private JwtAuthenticationHelper jwtAuthenticationHelper;
 
     @PostMapping("/login")
-    @Cacheable(value = "jwtResponses", key = "#jwtRequest.username")
+//    @Cacheable(value = "jwtResponses", key = "#jwtRequest.username")
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest jwtRequest)
     {
         return new ResponseEntity<>(authService.login(jwtRequest), HttpStatus.OK);
@@ -38,7 +38,7 @@ public class AuthController {
 //    }
 
     @GetMapping("/current-user")
-    @CachePut(value = "currentUser", key = "#userDetails.username")
+//    @CachePut(value = "currentUser", key = "#userDetails.username")
     public String getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails != null) {
             return "Logged-in user: " + userDetails.getUsername();

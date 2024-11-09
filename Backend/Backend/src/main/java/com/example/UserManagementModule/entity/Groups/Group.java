@@ -1,5 +1,7 @@
 package com.example.UserManagementModule.entity.Groups;
 
+import com.example.UserManagementModule.Helper.TaskStatus;
+import com.example.UserManagementModule.entity.Faculty.Faculty;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Weeks.Week;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -54,6 +56,11 @@ public class Group implements Serializable {
     private List<Week> weeks = new ArrayList<>();
 
     private String groupLeader;
+
+    private String projectStatus = TaskStatus.IN_PROGRESS.name();
+
+    @ManyToOne
+    private Faculty mentor;
 
     @CreatedDate
     @Column(updatable = false)

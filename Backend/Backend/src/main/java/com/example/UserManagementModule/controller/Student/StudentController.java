@@ -65,6 +65,11 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentGroups(SID));
     }
 
+    @GetMapping("/gs/{SID}")
+    public ResponseEntity<List<Group>> getStudentGroupsByProjectStatus(@PathVariable String SID) {
+        return ResponseEntity.ok(studentService.getStudentGroupsByProjectStatus(SID));
+    }
+
     @PostMapping("/skills/{id}")
     public ResponseEntity<Student> addStudentSkill(@PathVariable String id, @RequestBody List<String> skills) {
         return new ResponseEntity<>(studentService.addStudentSkill(id,skills), HttpStatus.OK);

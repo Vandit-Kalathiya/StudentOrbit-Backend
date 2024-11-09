@@ -1,9 +1,11 @@
 package com.example.UserManagementModule.entity.Faculty;
 
 import com.example.UserManagementModule.entity.Comment.Comment;
+import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Providers;
 import com.example.UserManagementModule.entity.Role;
 import com.example.UserManagementModule.entity.Student.Student;
+import com.example.UserManagementModule.entity.Weeks.Week;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -73,6 +75,10 @@ public class Faculty implements UserDetails, Serializable {
     )
     private Set<Role> roles = new HashSet<>();
 
+    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @JsonIgnore
+    private List<Group> groups;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -123,6 +129,11 @@ public class Faculty implements UserDetails, Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void addGroup(Group group) {
+        group.setMentor(this);
+        this.groups.add(group);
     }
 }
 

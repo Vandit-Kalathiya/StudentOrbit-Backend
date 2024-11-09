@@ -31,4 +31,9 @@ public class WeekService {
         Group group = facultyGroupService.getGroupByName(pName).orElseThrow(() -> new RuntimeException("Group not found for project name: " + pName));
         return weekRepository.findByWeekNumberAndGroup(weekNum, group).orElseThrow(() -> new RuntimeException("Week not found for week number: " + weekNum + " and group: " + pName));
     }
+
+    public Week getCurrentWeek() {
+
+        return null;
+    }
 }

@@ -2,7 +2,10 @@ package com.example.UserManagementModule.service.Faculty;
 
 import com.example.UserManagementModule.dto.Faculty.FacultyRegisterRequest;
 import com.example.UserManagementModule.entity.Faculty.Faculty;
+import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.repository.Faculty.FacultyRepository;
+import com.example.UserManagementModule.repository.Group.GroupRepository;
+import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -18,13 +21,15 @@ public class FacultyService {
 
     @Autowired
     private FacultyRepository facultyRepository;
+    @Autowired
+    private GroupRepository groupRepository;
 
-    @Cacheable(value = "facultyList")
+//    @Cacheable(value = "facultyList")
     public List<Faculty> findAllFaculties() {
         return facultyRepository.findAll();
     }
 
-    @Cacheable(value = "faculty", key = "#id")
+//    @Cacheable(value = "faculty", key = "#id")
     public Faculty findFacultyById(String id) {
         return facultyRepository.findById(id).orElse(null);
     }
@@ -34,7 +39,7 @@ public class FacultyService {
         return facultyRepository.findByUsername(facultyName).orElse(null);
     }
 
-    @CachePut(value = "faculty", key = "#faculty.id")
+//    @CachePut(value = "faculty", key = "#faculty.id")
     public Faculty saveFaculty(Faculty faculty) {
         return facultyRepository.save(faculty);
     }
@@ -68,5 +73,22 @@ public class FacultyService {
         faculty.setCreatedAt(LocalDateTime.now());
 
         facultyRepository.save(faculty);
+    }
+
+    public Group selectMentor(String facultyName, String groupId) {
+        Group group = groupRepository.findById(groupId).orElse(null);
+        Faculty faculty = facultyRepository.findByUsername(facultyName).orElse(null);
+        if(group == null){
+            throw new NotFoundException("Group not found for group id : "+ groupId);
+        }
+        if(faculty == null){
+            throw new NotFoundException("Faculty not found for faculty id : "+ facultyName);
+        }
+        group.setMentor(faculty);
+        faculty.addGroup(group);
+
+        facultyRepository.save(faculty);
+
+        return group;
     }
 }

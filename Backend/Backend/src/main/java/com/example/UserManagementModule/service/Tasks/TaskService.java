@@ -1,5 +1,6 @@
 package com.example.UserManagementModule.service.Tasks;
 
+import com.example.UserManagementModule.Helper.TaskStatus;
 import com.example.UserManagementModule.dto.Task.TaskRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Groups.Group;
@@ -68,5 +69,13 @@ public class TaskService {
 
     public Task getTask(String id) {
         return taskRepository.findById(id).get();
+    }
+
+    public Long countTasksByStudentId(String studentId) {
+        return taskRepository.countTasksByStudentId(studentId.toUpperCase());
+    }
+
+    public Long countTasksByStudentIdAndStatus(String studentId, String status) {
+        return taskRepository.countTasksByStudentAndStatusInGroup(studentId, status);
     }
 }

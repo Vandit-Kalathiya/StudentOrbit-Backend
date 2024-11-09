@@ -20,7 +20,7 @@ public class FacultyGroupService {
     @Autowired
     private BatchRepository batchRepository;
 
-    @Cacheable(value = "allGroups")
+//    @Cacheable(value = "allGroups")
     public List<Group> getAllGroups() {
         return groupRepository.findAll();
     }
@@ -30,12 +30,12 @@ public class FacultyGroupService {
         return groupRepository.findById(id);
     }
 
-    @CacheEvict(value = "allGroups", allEntries = true)
+//    @CacheEvict(value = "allGroups", allEntries = true)
     public Group saveGroup(Group group) {
         return groupRepository.save(group);
     }
 
-    @CacheEvict(value = "allGroups", allEntries = true)
+//    @CacheEvict(value = "allGroups", allEntries = true)
     public void deleteGroup(String id) {
         groupRepository.deleteById(id);
     }
@@ -45,10 +45,12 @@ public class FacultyGroupService {
         return groupRepository.findByGroupName(name);
     }
 
-    @Cacheable(value = "groupsByBatch", key = "#name")
+//    @Cacheable(value = "groupsByBatch", key = "#name")
     public Set<Group> getGroupsByBatch(String name) {
         return groupRepository.findGroupsByBatchName(name);
     }
+
+
 }
 
 
