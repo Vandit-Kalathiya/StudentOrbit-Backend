@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface TaskRepository extends JpaRepository<Task, String> {
 
@@ -23,4 +25,10 @@ public interface TaskRepository extends JpaRepository<Task, String> {
             "AND g IN (SELECT g2 FROM Group g2 JOIN g2.students s2 WHERE s2.username = :studentId and g2.projectStatus = 'IN_PROGRESS')")
     long countTasksByStudentAndStatusInGroup(@Param("studentId") String studentId,
                                              @Param("status") String status);
+
+    @Query("SELECT t FROM Task t " +
+            "JOIN t.assignee s " +
+            "WHERE s.username = :username " +
+            "AND t.status = 'COMPLETED'")
+    List<Task> findCompletedTasksByStudent(@Param("username") String username);
 }

@@ -14,12 +14,11 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class StudentService {
@@ -38,11 +37,16 @@ public class StudentService {
     public void createStudent(StudentResgisterRequest studentRequest) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = bCryptPasswordEncoder.encode(studentRequest.getPassword());
-        if (studentRepository.findByUsername(studentRequest.getUsername()).isPresent()) {
+        if (studentRepository.findByUsername(studentRequest.getUsername().toUpperCase()).isPresent()) {
             throw new RuntimeException("Student already exists with username : " + studentRequest.getUsername());
+        }
+        if (studentRepository.findByEmail(studentRequest.getEmail()).isPresent()) {
+            throw new RuntimeException("Student already exists with email : " + studentRequest.getEmail());
         }
         Student student = new Student();
         student.setUsername(studentRequest.getUsername().toUpperCase());
+        System.out.println(studentRequest);
+        student.setStudentName(studentRequest.getStudentName());
         student.setPassword(encodedPassword);
         student.setEmail(studentRequest.getEmail());
         student.setEnabled(true);
@@ -113,12 +117,12 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
-    @Cacheable(value = "student", key = "#id")
+//    @Cacheable(value = "student", key = "#id")
     public Optional<Student> getStudentById(String id) {
         return studentRepository.findById(id);
     }
 
-    @CachePut(value = "students", key = "#student.id")
+//    @CachePut(value = "students", key = "#student.id")
     public Student saveStudent(Student student) {
         return studentRepository.save(student);
     }
@@ -128,7 +132,7 @@ public class StudentService {
         studentRepository.deleteById(id);
     }
 
-    @Cacheable(value = "student", key = "#username")
+//    @Cacheable(value = "student", key = "#username")
     public Optional<Student> getStudentByUsername(String username) {
         return studentRepository.findByUsername(username);
     }
@@ -177,7 +181,7 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    @Cacheable(value = "studentSkills",key = "#username")
+//    @Cacheable(value = "studentSkills",key = "#username")
     public Set<Skills> getStudentSkills(String username) {
         return studentRepository.findByUsername(username).get().getSkills();
     }
@@ -192,12 +196,27 @@ public class StudentService {
         return savedStudent.getSkills();
     }
 
-    @CacheEvict(value = "students", key = "#username")
-    public Student updateStudentProfile(String username, ProfileUpdateRequest profileUpdateRequest) {
+//    @CacheEvict(value = "students", key = "#username")
+    public Student updateStudentProfile(String username, ProfileUpdateRequest profileUpdateRequest, MultipartFile image) throws IOException {
         Student student = studentRepository.findByUsername(username).get();
-        student.setGitHubUrl(profileUpdateRequest.getGitHubUrl());
-        student.setLinkedInUrl(profileUpdateRequest.getLinkedInUrl());
-        saveStudent(student);
-        return student;
+
+//        System.out.println(image);
+        if(profileUpdateRequest.getGithub() != null) {
+            student.setGitHubUrl(profileUpdateRequest.getGithub());
+        }
+        if(profileUpdateRequest.getLinkedin() != null) {
+            student.setLinkedInUrl(profileUpdateRequest.getLinkedin());
+        }
+        if(image != null) {
+            System.out.println(image.getOriginalFilename());
+            System.out.println(image.getContentType());
+            student.setProfilePicture(image.getBytes());
+        }
+        return saveStudent(student);
+    }
+
+    public byte[] getProfileImage(String username) {
+        Student student = studentRepository.findByUsername(username).get();
+        return student.getProfilePicture();
     }
 }

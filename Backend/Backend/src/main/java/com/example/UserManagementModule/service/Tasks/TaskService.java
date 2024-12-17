@@ -12,9 +12,11 @@ import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +48,7 @@ public class TaskService {
         newTask.setDescription(taskRequest.getTaskDescription());
         newTask.setStatus(taskRequest.getTaskStatus());
         newTask.setWeek(week);
-        newTask.setDate(LocalDate.now());
+        newTask.setCreatedDate(LocalDate.now());
         newTask.setTime(LocalTime.now());
 
         Task savedTask = taskRepository.save(newTask);
@@ -77,5 +79,22 @@ public class TaskService {
 
     public Long countTasksByStudentIdAndStatus(String studentId, String status) {
         return taskRepository.countTasksByStudentAndStatusInGroup(studentId, status);
+    }
+
+    public Task changeTaskStatus(String id, String status) {
+        Task task = taskRepository.findById(id).get();
+        System.out.println(status);
+        task.setStatus(status);
+        if(status.equals("IN_REVIEW")) {
+            task.setSubmittedDate(LocalDateTime.now());
+        }
+        if(status.equals("COMPLETED")) {
+            task.setCompletedDate(LocalDateTime.now());
+        }
+        return taskRepository.save(task);
+    }
+
+    public List<Task> findCompletedTasksByStudent(String username) {
+        return taskRepository.findCompletedTasksByStudent(username);
     }
 }

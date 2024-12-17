@@ -1,5 +1,6 @@
 package com.example.UserManagementModule.controller.Tasks;
 
+import com.example.UserManagementModule.Exceptions.TaskAssignmentException;
 import com.example.UserManagementModule.dto.Task.TaskRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Student.Student;
@@ -8,14 +9,18 @@ import com.example.UserManagementModule.repository.Student.StudentRepository;
 import com.example.UserManagementModule.repository.Task.TaskRepository;
 import com.example.UserManagementModule.service.Student.StudentService;
 import com.example.UserManagementModule.service.Tasks.TaskService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/tasks")
 public class TasksController {
@@ -42,17 +47,21 @@ public class TasksController {
 
     @PostMapping("/{id}/{status}")
     public ResponseEntity<Task> changeTaskStatus(@PathVariable String id, @PathVariable String status) {
-        Task task = taskRepository.findById(id).get();
-        task.setStatus(status);
-        return ResponseEntity.ok(taskRepository.save(task));
+        return ResponseEntity.ok(taskService.changeTaskStatus(id, status));
     }
 
+    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/{id}")
     public ResponseEntity<Task> assignAssigneeToTask(@PathVariable String id, @RequestBody List<String> assigneeIds) throws Exception {
 //        System.out.println(assigneeIds);
-        Task task = taskRepository.findById(id).orElseThrow(() -> new Exception("Task not found with id: " + id));
+        Task task = taskRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + id));
+        List<Student> assignees = task.getAssignee();
 
-        List<Student> assignees = new ArrayList<>();
+        assignees.forEach(assignee -> {
+            if(assigneeIds.contains(assignee.getId())){
+                throw new TaskAssignmentException("Assignee " + assignee.getUsername() + " already assigned to task.");
+            }
+        });
 
         assigneeIds.forEach(assigneeId -> {
             Student student = studentService.getStudentById(assigneeId).get();
@@ -85,5 +94,10 @@ public class TasksController {
     @GetMapping("/count/{studentId}/{status}")
     public ResponseEntity<Long> getCountTasksByStudentIdAndStatus(@PathVariable String studentId, @PathVariable String status) {
         return ResponseEntity.ok(taskService.countTasksByStudentIdAndStatus(studentId, status));
+    }
+
+    @GetMapping("/s/{username}")
+    public ResponseEntity<List<Task>> findCompletedTasksByStudent(@PathVariable String username) {
+        return ResponseEntity.ok(taskService.findCompletedTasksByStudent(username));
     }
 }

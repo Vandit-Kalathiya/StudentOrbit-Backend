@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProfileUpdateRequest {
 
-    private String gitHubUrl;
-    private String linkedInUrl;
+    private byte[] profilePicture;
+    private String github;
+    private String linkedin;
 }

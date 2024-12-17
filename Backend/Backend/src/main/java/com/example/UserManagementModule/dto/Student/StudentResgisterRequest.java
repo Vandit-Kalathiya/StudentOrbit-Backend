@@ -17,4 +17,6 @@ public class StudentResgisterRequest {
 	private String username;
 	@Column(nullable = false)
 	private String password;
+
+	private String studentName;
 }

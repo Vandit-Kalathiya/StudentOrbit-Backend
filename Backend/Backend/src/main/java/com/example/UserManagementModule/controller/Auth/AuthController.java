@@ -4,6 +4,7 @@ import com.example.UserManagementModule.dto.Jwt.JwtRequest;
 import com.example.UserManagementModule.dto.Jwt.JwtResponse;
 import com.example.UserManagementModule.jwt.JwtAuthenticationHelper;
 import com.example.UserManagementModule.service.Auth.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,23 +28,19 @@ public class AuthController {
 
     @PostMapping("/login")
 //    @Cacheable(value = "jwtResponses", key = "#jwtRequest.username")
-    public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest jwtRequest)
+    public ResponseEntity<?> login(@RequestBody JwtRequest jwtRequest, HttpServletResponse response)
     {
-        return new ResponseEntity<>(authService.login(jwtRequest), HttpStatus.OK);
+        try{
+            return new ResponseEntity<>(authService.login(jwtRequest, response), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-
-//    @GetMapping("/current-user/{token}")
-//    public String getCurrentUser(@PathVariable String token) {
-//        return jwtAuthenticationHelper.getUsernameFromToken(token);
-//    }
 
     @GetMapping("/current-user")
 //    @CachePut(value = "currentUser", key = "#userDetails.username")
-    public String getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails != null) {
-            return "Logged-in user: " + userDetails.getUsername();
-        } else {
-            return "No authenticated user";
-        }
+    public ResponseEntity<?> getFacultyProfile() {
+        Object currentFaculty = authService.getCurrentFaculty();
+        return ResponseEntity.ok(currentFaculty);
     }
 }

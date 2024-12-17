@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/week")
 public class WeeksController {

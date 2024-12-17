@@ -2,7 +2,9 @@
 
     import com.example.UserManagementModule.entity.Batches.CustomAnnotations.ValidSemester;
     import com.example.UserManagementModule.entity.Batches.CustomAnnotations.ValidYear;
+    import com.example.UserManagementModule.entity.Faculty.Faculty;
     import com.example.UserManagementModule.entity.Groups.Group;
+    import com.fasterxml.jackson.annotation.JsonIgnore;
     import jakarta.persistence.*;
     import lombok.*;
     import org.springframework.data.annotation.CreatedDate;
@@ -13,6 +15,7 @@
     import java.io.Serializable;
     import java.time.LocalDateTime;
     import java.util.Date;
+    import java.util.List;
     import java.util.Objects;
     import java.util.Set;
 
@@ -28,7 +31,6 @@
         @GeneratedValue(strategy = GenerationType.UUID)
         private String id;
 
-        @Column()
         private String batchName;
 
         @Min(value = 1, message = "Year must be at least 1")
@@ -37,7 +39,7 @@
         private Integer year;
 
         @Min(value = 1, message = "Semester must be at least 1")
-        @Max(value = 8, message = "Semester must be at most 8")
+        @Max(value = 8, message = "Semester is invalid")
         @ValidSemester(message = "Semester is invalid")
         private Integer semester;
 
@@ -47,8 +49,10 @@
         @Pattern(regexp = "^\\d{2}CE(0[1-9]|[1-9][0-9]|1[0-8][0-9]|190)$", message = "Invalid end Id.")
         private String endId;
 
-        @OneToMany(mappedBy = "batchName", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-        private Set<Group> groups;  // Adjusted to handle multiple groups within a batch
+        @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+        @JsonIgnore
+        @ToString.Exclude // Prevents recursion
+        private List<Group> groups;
 
         @CreatedDate
         @Column(updatable = false)
@@ -56,17 +60,12 @@
 
         private String academicYear = LocalDateTime.now().getYear() + "";
 
-//        @Override
-//        public int hashCode() {
-//            // Exclude groups to avoid circular reference
-//            return Objects.hash(id, batchName, year, semester, startId, endId);
-//        }
-//
-//        @Override
-//        public boolean equals(Object obj) {
-//            if (this == obj) return true;
-//            if (obj == null || getClass() != obj.getClass()) return false;
-//            Batch batch = (Batch) obj;
-//            return Objects.equals(id, batch.id);
-//        }
+        @ManyToOne
+        private Faculty assignedFaculty;
+
+        public void addGroup(Group group) {
+            group.setBatch(this);
+            this.groups.add(group);
+        }
     }
+

@@ -14,7 +14,7 @@ public class TokenService {
     @Autowired
     private TokenRepository tokenRepository;
 
-    @CachePut(value = "tokens", key = "#token.id")
+//    @CachePut(value = "tokens", key = "#token.id")
     public JwtToken saveToken(JwtToken token) {
         return tokenRepository.save(token);
     }

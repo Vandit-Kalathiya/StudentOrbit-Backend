@@ -1,6 +1,7 @@
 package com.example.UserManagementModule.service.Faculty;
 
 import com.example.UserManagementModule.dto.Faculty.FacultyRegisterRequest;
+import com.example.UserManagementModule.entity.Batches.Batch;
 import com.example.UserManagementModule.entity.Faculty.Faculty;
 import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.repository.Faculty.FacultyRepository;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +38,8 @@ public class FacultyService {
 
 //    @Cacheable(value = "faculty", key = "#facultyName")
     public Faculty findFacultyByFacultyName(String facultyName) {
-        return facultyRepository.findByUsername(facultyName).orElse(null);
+        System.out.println("------------------------------------------"+facultyName+"-----------------------------------");
+        return facultyRepository.findByUsername(facultyName).get();
     }
 
 //    @CachePut(value = "faculty", key = "#faculty.id")
@@ -66,18 +69,19 @@ public class FacultyService {
 
         Faculty faculty = new Faculty();
         faculty.setUsername(facultyRequest.getUsername());
+        faculty.setName(facultyRequest.getFacultyName());
         faculty.setPassword(encodedPassword);
         faculty.setEmail(facultyRequest.getEmail());
         faculty.setEnabled(true);
         faculty.setEmailVerified(true);
         faculty.setCreatedAt(LocalDateTime.now());
 
-        facultyRepository.save(faculty);
+        this.saveFaculty(faculty);
     }
 
     public Group selectMentor(String facultyName, String groupId) {
         Group group = groupRepository.findById(groupId).orElse(null);
-        Faculty faculty = facultyRepository.findByUsername(facultyName).orElse(null);
+        Faculty faculty = facultyRepository.findByName(facultyName).orElse(null);
         if(group == null){
             throw new NotFoundException("Group not found for group id : "+ groupId);
         }
@@ -87,7 +91,7 @@ public class FacultyService {
         group.setMentor(faculty);
         faculty.addGroup(group);
 
-        facultyRepository.save(faculty);
+        this.saveFaculty(faculty);
 
         return group;
     }

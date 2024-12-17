@@ -41,6 +41,9 @@ public class Student implements UserDetails, Serializable {
     private String email;
 
     @Column(nullable = false)
+    private String studentName;
+
+    @Column(nullable = false)
     private boolean enabled = false;
 
     @Column(name = "email_verified", nullable = false)
@@ -73,14 +76,6 @@ public class Student implements UserDetails, Serializable {
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Faculty mentor;
 
-//    @ManyToMany
-//    @JoinTable(
-//            name = "student_projects",
-//            joinColumns = @JoinColumn(name = "student_id"),
-//            inverseJoinColumns = @JoinColumn(name = "student_group_id")
-//    )
-//    private List<Group> projects;
-
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -88,8 +83,10 @@ public class Student implements UserDetails, Serializable {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-//    @OneToOne
-//    private Group group;
+    // Add profile picture field
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] profilePicture; // Store image as binary data
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

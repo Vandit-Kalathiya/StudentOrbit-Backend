@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -33,6 +34,10 @@ public class Week implements Serializable {
     @OneToMany(mappedBy = "week", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<Task> tasks;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
 
     public void addTask(Task task) {
         task.setWeek(this);

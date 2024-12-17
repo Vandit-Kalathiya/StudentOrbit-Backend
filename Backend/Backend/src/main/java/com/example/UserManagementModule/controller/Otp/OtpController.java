@@ -2,10 +2,12 @@ package com.example.UserManagementModule.controller.Otp;
 
 import com.example.UserManagementModule.entity.Otp.EmailVerifyRequest;
 import com.example.UserManagementModule.entity.Otp.OtpSentReq;
+import com.example.UserManagementModule.repository.Student.StudentRepository;
 import com.example.UserManagementModule.service.Otp.EmailService;
 import com.example.UserManagementModule.service.Student.StudentService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,12 +28,18 @@ public class OtpController {
     private static   Map<String, String> otpStore = new HashMap<>();
     @Autowired
     private StudentService studentService;
+    @Autowired
+    private StudentRepository studentRepository;
 
     @PostMapping("/send")
-    public ResponseEntity<String> sendOTP(@RequestBody OtpSentReq otpSentReq) throws MessagingException {
-
-        if(studentService.getStudentByEmail(otpSentReq.getEmail()).isPresent()) {
-            throw new MessagingException("User Already Exists...");
+    public ResponseEntity<?> sendOTP(@RequestBody OtpSentReq otpSentReq) throws MessagingException {
+        if (studentRepository.findByUsername(otpSentReq.getUsername().toUpperCase()).isPresent()) {
+//            throw new RuntimeException("Student already exists with username : " + otpSentReq.getUsername().toUpperCase());
+            return new ResponseEntity<>("Student already exists with username : " + otpSentReq.getUsername().toUpperCase(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (studentRepository.findByEmail(otpSentReq.getEmail()).isPresent()) {
+//            throw new RuntimeException("Student already exists with email : " + otpSentReq.getEmail());
+            return new ResponseEntity<>("Student already exists with email : " + otpSentReq.getEmail(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         String email = otpSentReq.getEmail();

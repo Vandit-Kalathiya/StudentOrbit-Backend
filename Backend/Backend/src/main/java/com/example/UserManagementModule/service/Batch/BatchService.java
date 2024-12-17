@@ -1,6 +1,7 @@
 package com.example.UserManagementModule.service.Batch;
 
 import com.example.UserManagementModule.entity.Batches.Batch;
+import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.repository.Batch.BatchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -45,8 +46,16 @@ public class BatchService {
                 .orElseThrow(() -> new RuntimeException("Batch not found with name : " + name)));
     }
 
-    @Cacheable(value = "batchByNameAndSemester", key = "#name + '-' + #semester")
+//    @Cacheable(value = "batchByNameAndSemester", key = "#name + '-' + #semester")
     public Optional<Batch> getBatchByBatchNameAndSemester(String name, Integer semester) {
         return batchRepository.getBatchByBatchNameAndSemester(name, semester);
+    }
+
+    public List<Batch> getBatchesOfFaculty(String username) {
+        return batchRepository.findAllBatchesOfFaculty(username).get();
+    }
+
+    public List<Group> getAllGroupsOfBatch(Integer sem,String batchName){
+        return batchRepository.getBatchByBatchNameAndSemester(batchName, sem).get().getGroups();
     }
 }

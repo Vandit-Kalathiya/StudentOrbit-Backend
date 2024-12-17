@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class OtpSentReq {
     private String email;
+    private String username;
 }

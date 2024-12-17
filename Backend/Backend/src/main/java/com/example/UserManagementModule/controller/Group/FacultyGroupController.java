@@ -9,16 +9,20 @@ import com.example.UserManagementModule.entity.Weeks.Week;
 import com.example.UserManagementModule.service.Batch.BatchService;
 import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import com.example.UserManagementModule.service.Student.StudentService;
+import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @RestController
 @RequestMapping("/faculty/groups")
+@CrossOrigin(origins = "http://localhost:5173")
 public class FacultyGroupController {
 
     @Autowired
@@ -65,30 +69,29 @@ public class FacultyGroupController {
         group.setTechnologies(technologies);
 
         Set<Student> students = new HashSet<>();
-        System.out.println(groupRequest.getStudents().isEmpty());
         groupRequest.getStudents().forEach(studentId -> {
-            Student student = studentService.getStudentByUsername(studentId.toUpperCase()).get();
-//            System.out.println(student.getUsername());
+            Student student = studentService.getStudentByUsername(studentId.toUpperCase()).orElseThrow();
             students.add(student);
         });
 
         group.setStudents(students);
 
-        group.setGroupLeader(groupRequest.getGroupLeaderId());
+        group.setStartDate(groupRequest.getStartDate());
+        group.setGroupLeader(groupRequest.getGroupLeaderId().toUpperCase());
         group.setCreatedAt(LocalDateTime.now());
 
-        System.out.println(groupRequest.getBatchName()+"========================");
         Batch batch = batchService.getBatchByBatchNameAndSemester(groupRequest.getBatchName().substring(1),Integer.parseInt(groupRequest.getBatchName().substring(0,1))).get();
         group.setBatchName(groupRequest.getBatchName());
 
-        Set<Group> groups = batch.getGroups();
-        groups.add(group);
-        batch.setGroups(groups);
-
         List<Week> weeks = new ArrayList<>();
+
+        LocalDate currentDate = LocalDate.parse(groupRequest.getStartDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         for (int i = 1; i <= 12; i++) {
             Week week = new Week();
+            week.setStartDate(currentDate);
+            week.setEndDate(currentDate.plusDays(6));
+            currentDate = currentDate.plusDays(7);
             week.setWeekNumber(i);
             week.setTasks(new ArrayList<>());
             weeks.add(week);
@@ -99,17 +102,10 @@ public class FacultyGroupController {
 
         Group savedGroup = groupService.saveGroup(group);
 
-//        savedGroup.getStudents().forEach(student -> {
-//            List<Group> studentProjects = student.getProjects();
-//            if(studentProjects == null) {
-//                studentProjects = new ArrayList<>();
-//            }
-//            studentProjects.add(savedGroup);
-//            student.setProjects(studentProjects);
-//            studentService.saveStudent(student);
-//        });
+        batch.addGroup(savedGroup);
+        group.setBatch(batch);
 
-        return new ResponseEntity<>(savedGroup, HttpStatus.CREATED);
+        return new ResponseEntity<>(groupService.saveGroup(group), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -135,9 +131,23 @@ public class FacultyGroupController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/{name}")
+    @GetMapping("/b/{name}")
     public Set<Group> getGroupByBatchName(@PathVariable String name) {
         System.out.println("name : " + name);
         return groupService.getGroupsByBatch(name);
+    }
+
+    @PutMapping("/complete/{id}")
+    public ResponseEntity<Group> markProjectCompleted(@PathVariable String id) {
+        return ResponseEntity.ok(groupService.markProjectCompleted(id));
+    }
+
+    @PostMapping("/add/member/{id}")
+    public ResponseEntity<?> addMember(@PathVariable String id, @RequestBody List<String> memberUsername) {
+        try{
+            return ResponseEntity.ok(groupService.addMember(id,memberUsername));
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

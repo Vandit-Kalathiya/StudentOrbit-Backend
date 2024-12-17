@@ -33,26 +33,17 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//		System.out.println("Student Security : " + username);
-
 		Optional<Student> studentOpt = studentRepository.findByUsername(username);
-//		System.out.println(studentOpt.get().getEmail());
 		if (studentOpt.isPresent()) {
-//			System.out.println("Security done using student...");
 			return studentOpt.get();
 		}
 
 		Optional<Faculty> facultyOpt = facultyRepository.findByUsername(username);
-//		System.out.println(facultyOpt.get().getEmail());
 		if (facultyOpt.isPresent()) {
-//			System.out.println("Security done using faculty...");
 			return facultyOpt.get();
 		}
 
-
-		throw new UsernameNotFoundException("User not found");
-
-//		return this.studentRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+		throw new UsernameNotFoundException("User not found with username: " + username);
 	}
 
 	private Collection<? extends GrantedAuthority> getAuthorities(Set<Role> roles) {

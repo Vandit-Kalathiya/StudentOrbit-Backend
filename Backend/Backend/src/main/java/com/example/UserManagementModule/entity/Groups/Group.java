@@ -1,15 +1,14 @@
 package com.example.UserManagementModule.entity.Groups;
 
 import com.example.UserManagementModule.Helper.TaskStatus;
+import com.example.UserManagementModule.entity.Batches.Batch;
 import com.example.UserManagementModule.entity.Faculty.Faculty;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Weeks.Week;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.io.Serializable;
@@ -30,29 +29,32 @@ public class Group implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "group_name")
     private String groupName;
 
-    @Column(name = "group_description")
     private String groupDescription;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "group_members",
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
+    @JsonManagedReference
     private Set<Student> students;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "group_technologies", joinColumns = @JoinColumn(name = "group_id"))
-    @Column(name = "technology")
     private Set<String> technologies;
 
     private String batchName;
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @ManyToOne
+    @ToString.Exclude // Prevents recursion
+    private Batch batch;
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference // To manage the serialization of weeks
+    @ToString.Exclude // Prevents recursion
     private List<Week> weeks = new ArrayList<>();
 
     private String groupLeader;
@@ -65,6 +67,8 @@ public class Group implements Serializable {
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    private String startDate;
 
     public void addWeek(Week week) {
         week.setGroup(this);

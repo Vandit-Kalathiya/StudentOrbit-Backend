@@ -9,11 +9,15 @@ import com.example.UserManagementModule.repository.Skills.SkillsRepository;
 import com.example.UserManagementModule.service.Student.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/students")
 public class StudentController {
@@ -76,8 +80,8 @@ public class StudentController {
     }
 
     @GetMapping("/skills/{username}")
-    public ResponseEntity<Set<Skills>> getStudentSkills(@PathVariable String username) {
-        return ResponseEntity.ok(studentService.getStudentSkills(username));
+    public ResponseEntity<List<Skills>> getStudentSkills(@PathVariable String username) {
+        return ResponseEntity.ok(studentService.getStudentSkills(username).stream().toList());
     }
 
     @DeleteMapping("/skills/{id}/{skill}")
@@ -86,8 +90,13 @@ public class StudentController {
     }
 
     @PutMapping("/profile/{username}")
-    public ResponseEntity<Student> updateStudentProfile(@PathVariable String username, @RequestBody ProfileUpdateRequest profileUpdateRequest) {
-        return ResponseEntity.ok(studentService.updateStudentProfile(username,profileUpdateRequest));
+    public ResponseEntity<Student> updateStudentProfile(@PathVariable String username, @RequestPart ProfileUpdateRequest profileUpdateRequest, @RequestPart MultipartFile image) throws IOException {
+        return ResponseEntity.ok(studentService.updateStudentProfile(username,profileUpdateRequest,image));
+    }
+
+    @GetMapping("/{username}/image")
+    public ResponseEntity<byte[]> getStudentImage(@PathVariable String username) {
+        return ResponseEntity.ok().body(studentService.getProfileImage(username));
     }
 
     @PutMapping("/edit/{id}")

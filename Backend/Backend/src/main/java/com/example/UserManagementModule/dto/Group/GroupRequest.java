@@ -19,4 +19,5 @@ public class GroupRequest {
     private Set<String> technologies;
     private String batchName;
     private String groupLeaderId;
+    private String startDate;
 }

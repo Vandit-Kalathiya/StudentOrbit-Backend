@@ -1,5 +1,6 @@
 package com.example.UserManagementModule.entity.Faculty;
 
+import com.example.UserManagementModule.entity.Batches.Batch;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Providers;
@@ -45,7 +46,7 @@ public class Faculty implements UserDetails, Serializable {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true)
+//    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -79,6 +80,10 @@ public class Faculty implements UserDetails, Serializable {
     @JsonIgnore
     private List<Group> groups;
 
+    @OneToMany(mappedBy = "assignedFaculty", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @JsonIgnore
+    private List<Batch> batches;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -97,6 +102,8 @@ public class Faculty implements UserDetails, Serializable {
                 .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
                 .collect(Collectors.toList());
     }
+
+
 
     @Override
     public boolean isAccountNonExpired() {
@@ -134,6 +141,11 @@ public class Faculty implements UserDetails, Serializable {
     public void addGroup(Group group) {
         group.setMentor(this);
         this.groups.add(group);
+    }
+
+    public void addBatch(Batch batch) {
+        batch.setAssignedFaculty(this);
+        this.batches.add(batch);
     }
 }
 

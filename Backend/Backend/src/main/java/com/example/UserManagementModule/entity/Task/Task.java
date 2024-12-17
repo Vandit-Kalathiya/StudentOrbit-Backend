@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -49,7 +50,11 @@ public class Task implements Serializable {
     @JsonIgnore
     private List<Comment> comments;
 
-    private LocalDate date;
+    private LocalDate createdDate;
+
+    private LocalDateTime submittedDate;
+
+    private LocalDateTime completedDate;
 
     private LocalTime time;
 

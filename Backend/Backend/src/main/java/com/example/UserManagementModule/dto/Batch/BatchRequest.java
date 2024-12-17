@@ -15,4 +15,5 @@ public class BatchRequest {
     private Integer semester;
     private String startId;
     private String endId;
+    private String assignedFacultyUsername;
 }
