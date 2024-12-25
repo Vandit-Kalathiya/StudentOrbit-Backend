@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/pdf")
@@ -20,7 +22,26 @@ public class PdfController {
 
     @GetMapping("/create/{username}")
     public ResponseEntity<InputStreamResource> createPdf(@PathVariable String username) {
-        ByteArrayInputStream byteArrayInputStream = pdfService.createPdf(username);
+        List<PdfService.TaskData> week1Tasks = List.of(
+                new PdfService.TaskData(
+                        "Implementation of user authentication",
+                        "John Doe",
+                        new Date(),
+                        "In Progress"
+                ),
+                new PdfService.TaskData(
+                        "Database schema design",
+                        "John Doe",
+                        new Date(),
+                        "Completed"
+                )
+        );
+
+        List<PdfService.WeekData> weekDataList = List.of(
+                new PdfService.WeekData(1, week1Tasks)
+        );
+
+        ByteArrayInputStream byteArrayInputStream = pdfService.createPdf("21CE121", weekDataList);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Disposition", "inline; filename=StudentOrbit.pdf");
