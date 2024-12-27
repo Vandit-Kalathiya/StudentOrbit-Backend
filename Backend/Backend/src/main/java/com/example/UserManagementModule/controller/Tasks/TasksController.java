@@ -100,4 +100,9 @@ public class TasksController {
     public ResponseEntity<List<Task>> findCompletedTasksByStudent(@PathVariable String username) {
         return ResponseEntity.ok(taskService.findCompletedTasksByStudent(username));
     }
+
+    @GetMapping("/s/all/{username}")
+    public ResponseEntity<List<Task>> getTasksOfStudent(@PathVariable String username){
+        return ResponseEntity.ok(taskService.findTasksByStudentId(username));
+    }
 }

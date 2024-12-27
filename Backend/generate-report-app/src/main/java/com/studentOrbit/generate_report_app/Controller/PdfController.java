@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -20,27 +21,67 @@ public class PdfController {
     @Autowired
     private PdfService pdfService;
 
-    @GetMapping("/create/{username}")
-    public ResponseEntity<InputStreamResource> createPdf(@PathVariable String username) {
-        List<PdfService.TaskData> week1Tasks = List.of(
-                new PdfService.TaskData(
-                        "Implementation of user authentication",
-                        "John Doe",
-                        new Date(),
-                        "In Progress"
-                ),
-                new PdfService.TaskData(
-                        "Database schema design",
-                        "John Doe",
-                        new Date(),
-                        "Completed"
-                )
-        );
+    @GetMapping("/create/{username}/{groupName}")
+    public ResponseEntity<InputStreamResource> createPdf(@PathVariable String username, @PathVariable String groupName) {
+//        List<PdfService.TaskData> week1Tasks = List.of(
+//                new PdfService.TaskData(
+//                        "Implementation of user authentication",
+//                        "Demo task",
+//                        Arrays.asList("22CE047","22CE049"),
+//                        new Date(),
+//                        "In Progress"
+//                ),
+//                new PdfService.TaskData(
+//                        "Database schema design",
+//                        "Designed DB schema",
+//                        List.of("22CE047"),
+//                        new Date(),
+//                        "Completed"
+//                )
+//        );
+//
+//        List<PdfService.TaskData> week2Tasks = List.of(
+//                new PdfService.TaskData(
+//                        "Implementation of user authentication",
+//                        "Demo task",
+//                        Arrays.asList("22CE047","22CE049"),
+//                        new Date(),
+//                        "In Progress"
+//                ),
+//                new PdfService.TaskData(
+//                        "Database schema design",
+//                        "Designed DB schema",
+//                        List.of("22CE047"),
+//                        new Date(),
+//                        "Completed"
+//                )
+//        );
+//
+//        List<PdfService.TaskData> week3Tasks = List.of(
+//                new PdfService.TaskData(
+//                        "Implementation of user authentication",
+//                        "Demo task",
+//                        Arrays.asList("22CE047","22CE049"),
+//                        new Date(),
+//                        "In Progress"
+//                ),
+//                new PdfService.TaskData(
+//                        "Database schema design",
+//                        "Designed DB schema",
+//                        List.of("22CE047"),
+//                        new Date(),
+//                        "Completed"
+//                )
+//        );
 
-        List<PdfService.WeekData> weekDataList = List.of(
-                new PdfService.WeekData(1, week1Tasks)
-        );
+//        List<PdfService.WeekData> weekDataList = List.of(
+//                new PdfService.WeekData(1, week1Tasks),
+//                new PdfService.WeekData(2, week2Tasks),
+//                new PdfService.WeekData(3, week3Tasks)
+//        );
 
+        List<PdfService.WeekData> weekDataList = pdfService.fetchWeekData(username, groupName);
+        System.out.println("Username : "+username);
         ByteArrayInputStream byteArrayInputStream = pdfService.createPdf("21CE121", weekDataList);
 
         HttpHeaders headers = new HttpHeaders();

@@ -1,30 +1,56 @@
 package com.studentOrbit.generate_report_app.Service;
 
 import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.events.Event;
+import com.itextpdf.kernel.events.IEventHandler;
+import com.itextpdf.kernel.events.PdfDocumentEvent;
+import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.properties.*;
+import com.studentOrbit.generate_report_app.entity.Student.Student;
+import com.studentOrbit.generate_report_app.entity.Task.Task;
+import jakarta.persistence.Column;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.WeakCacheKey;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 import lombok.Data;
 import lombok.AllArgsConstructor;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.List;
 
 @Slf4j
 @Service
 public class PdfService {
+
+    @Autowired
+    RestTemplate restTemplate;
+
+    public static String baseUrl = "http://localhost:1818/";
+
     // Theme constants
     private static class Theme {
         // Brand Colors
         static final DeviceRgb PRIMARY = new DeviceRgb(25, 91, 255);      // Vibrant blue
         static final DeviceRgb SECONDARY = new DeviceRgb(44, 62, 80);     // Dark slate
-        static final DeviceRgb ACCENT = new DeviceRgb(52, 152, 219);      // Light blue
+        static final DeviceRgb ACCENT = new DeviceRgb(52, 152, 219);
+        static final DeviceRgb NAVY = new DeviceRgb(0, 32, 96); // Light blue
 
         // Neutral Colors
         static final DeviceRgb BACKGROUND = new DeviceRgb(247, 250, 252); // Light gray
@@ -49,13 +75,116 @@ public class PdfService {
         };
     }
 
+    // Fetching WeekData and TaskData
+    public List<WeekData> fetchWeekData(String username, String groupName) {
+        List<WeekData> weekDataList = new ArrayList<>();
+
+        if (username != null) {
+            // Fetch tasks from the external API
+            String url = baseUrl + "tasks/s/all/" + username;
+            List<Task> tasks = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<Task>>() {}
+            ).getBody();
+
+            assert tasks != null;
+
+            // Sort tasks by week number
+            tasks.sort(Comparator.comparing(t -> t.getWeek().getWeekNumber()));
+
+            // Group tasks by week number
+            Map<Integer, List<TaskData>> groupedTasks = new LinkedHashMap<>();
+
+            tasks.forEach(task -> {
+                // Convert each Task to TaskData
+                List<String> assignees = new ArrayList<>();
+                task.getAssignee().forEach(assignee -> assignees.add(assignee.getUsername()));
+
+                TaskData taskData = new TaskData(
+                        task.getName(),
+                        task.getDescription(),
+                        assignees,
+                        task.getCompletedDate(),
+                        task.getStatus()
+                );
+
+                // Group tasks by week number
+                int weekNumber = task.getWeek().getWeekNumber();
+                groupedTasks.computeIfAbsent(weekNumber, k -> new ArrayList<>()).add(taskData);
+            });
+
+            // Convert grouped tasks into WeekData objects
+            groupedTasks.forEach((weekNumber, taskDataList) -> {
+                WeekData weekData = new WeekData(weekNumber, taskDataList);
+                weekDataList.add(weekData);
+            });
+        }
+
+        return weekDataList;
+    }
+
+    private static class FooterHandler implements IEventHandler {
+
+        private final Document doc;
+
+        public FooterHandler(Document doc) {
+            this.doc = doc;
+        }
+
+        @Override
+        public void handleEvent(Event event) {
+            PdfDocumentEvent pdfDocumentEvent = (PdfDocumentEvent) event;
+            PdfDocument pdfDocument = pdfDocumentEvent.getDocument();
+            PdfPage page = pdfDocumentEvent.getPage();
+            Rectangle pageSize = page.getPageSize();
+
+            // Create a PdfCanvas for drawing
+            PdfCanvas pdfCanvas = new PdfCanvas(page.newContentStreamAfter(), page.getResources(), pdfDocument);
+
+            // Create a Canvas wrapper for high-level drawing
+            Canvas canvas = new Canvas(pdfCanvas, pageSize);
+
+            // Footer content: Page number
+            int currentPageNumber = pdfDocument.getPageNumber(page);
+            Table footerTable = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1}))
+                    .setWidth(UnitValue.createPercentValue(100));
+
+            footerTable.addCell(new Cell().setBorder(Border.NO_BORDER)); // Left empty cell
+            footerTable.addCell(new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .add(new Paragraph("StudentOrbit")
+                            .setFontColor(Theme.NAVY)
+                            .setFontSize(12)
+                            .setMarginLeft(70)
+                            .setTextAlignment(TextAlignment.CENTER))); // Center cell
+            footerTable.addCell(new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .add(new Paragraph(String.valueOf(currentPageNumber))
+                            .setFontColor(Theme.NAVY)
+                            .setFontSize(12)
+                            .setTextAlignment(TextAlignment.RIGHT))); // Right cell
+
+            // Position the footer table at the bottom of the page
+            footerTable.setFixedPosition(
+                    -40, // x position
+                    30, // y position from bottom
+                    pageSize.getWidth() // width
+            );
+
+            // Add the footer table directly to the canvas
+            canvas.add(footerTable);
+            canvas.close();
+        }
+    }
+
     // Header component
     private static class Header {
         static void add(Document document, String username) {
             Table header = new Table(UnitValue.createPercentArray(new float[]{2, 1}))
                     .setWidth(UnitValue.createPercentValue(100))
                     .setBackgroundColor(Theme.WHITE)
-                    .setPadding(20)
                     .setMarginTop(20.0f);
 
             // Logo and Title
@@ -94,26 +223,33 @@ public class PdfService {
 
     // Task Card component
     private static class TaskCard {
-        static void add(Document document, TaskData task) {
-            Table taskCard = new Table(UnitValue.createPercentArray(new float[]{7, 3}))
+        private static void add(Document document, TaskData task) {
+            Table taskCard = new Table(UnitValue.createPercentArray(new float[]{7,3}))
                     .setWidth(UnitValue.createPercentValue(100))
-                    .setMarginTop(15)
-                    .setBackgroundColor(Theme.WHITE)
-                    .setBorderRadius(new BorderRadius(8))
-                    .setPadding(20);
-//                    .setProperty(Property.BOX_SHADOW, "0 2px 4px rgba(0, 0, 0, 0.1)");
+                    .setMarginTop(10)
+                    .setBorder(Border.NO_BORDER) // Remove all borders
+                    .setBorderLeft(new SolidBorder(new DeviceRgb(0, 128, 255), 2))
+                    .setMarginLeft(5)
+                    .setMarginRight(5)
+                    .setBackgroundColor(Theme.BACKGROUND);
 
             // Task Details
             Cell detailsCell = new Cell()
-                    .setBorder(null)
+                    .setBorder(Border.NO_BORDER)
                     .setPaddingLeft(20)
-                    .add(new Paragraph(task.getDescription())
+                    .setPaddingTop(6)
+                    .setPaddingBottom(3)
+                    .add(new Paragraph(task.getTaskName())
                             .setBold()
                             .setFontSize(13)
                             .setFontColor(Theme.TEXT_PRIMARY)
-                            .setMarginBottom(10))
-                    .add(createInfoRow("Assignee", task.getAssignee()))
-                    .add(createInfoRow("Due Date", formatDate(task.getDueDate())));
+                            .setMarginBottom(6))
+                    .add(new Paragraph(task.getDescription())
+                            .setFontSize(10)
+                            .setFontColor(Theme.TEXT_PRIMARY)
+                            .setMarginBottom(6))
+                    .add(createInfoRow("Assignees", String.join(", ", task.getAssignees()))) // Updated to handle multiple assignees
+                    .add(createInfoRow("Due Date", formatDate(task.getCompletionDate())));
 
             // Status Badge
             Cell statusCell = new Cell()
@@ -127,18 +263,21 @@ public class PdfService {
             document.add(taskCard);
         }
 
+
         private static Table createStatusBadge(String status) {
             DeviceRgb[] colors = getStatusColors(status);
 
             Table badge = new Table(1)
-                    .setWidth(UnitValue.createPercentValue(70))
-                    .setMarginLeft(12)
+                    .setWidth(UnitValue.createPercentValue(100))
+                    .setMarginLeft(64)
+                    .setMarginTop(10)
+                    .setMarginRight(20)
                     .setBorder(null);
 
             Cell badgeCell = new Cell()
                     .setBackgroundColor(colors[0])
                     .setBorderRadius(new BorderRadius(4))
-                    .setPadding(6)
+                    .setPadding(4)
                     .setBorder(null)
                     .add(new Paragraph(status)
                             .setFontSize(10)
@@ -169,14 +308,19 @@ public class PdfService {
             PdfWriter writer = new PdfWriter(outputStream);
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document document = new Document(pdfDoc, PageSize.A4);
-            document.setMargins(0, 36, 72, 36);
+            document.setMargins(12, 36, 72, 36);
 
-            Header.add(document, username);
-            addProjectInfo(document);
+            // Register the FooterHandler
+            pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterHandler(document));
 
+            // Add content to the PDF
+            Header.add(document, username); // Custom method for adding header
+            addProjectInfo(document);       // Custom method for adding project info
+
+            // Add weeks data
             if (weekDataList != null && !weekDataList.isEmpty()) {
                 for (WeekData weekData : weekDataList) {
-                    addWeekSection(document, weekData);
+                    addWeekSection(document, weekData); // Custom method for adding week sections
                 }
             }
 
@@ -192,7 +336,7 @@ public class PdfService {
     private void addProjectInfo(Document document) {
         Table infoTable = new Table(UnitValue.createPercentArray(new float[]{1}))
                 .setWidth(UnitValue.createPercentValue(100))
-                .setPadding(20)
+                .setBorderRadius(new BorderRadius(5))
                 .setBackgroundColor(Theme.BACKGROUND);
 
         infoTable.addCell(new Cell()
@@ -207,17 +351,21 @@ public class PdfService {
                 .add(createInfoRow("Project", "Project Management System").setFontSize(12)));
 
         document.add(infoTable);
-        document.add(new Paragraph().setMarginBottom(30));
+        document.add(new Paragraph().setMarginBottom(10));
     }
 
     private void addWeekSection(Document document, WeekData weekData) {
         Table weekHeader = new Table(1)
                 .setWidth(UnitValue.createPercentValue(100))
-                .setMarginTop(10);
+                .setMarginTop(20);
 
         weekHeader.addCell(new Cell()
                 .setBackgroundColor(Theme.SECONDARY)
-                .setPadding(10)
+                .setBorderTopLeftRadius(new BorderRadius(4))
+                .setBorderTopRightRadius(new BorderRadius(4))
+                .setBorder(null)
+                .setPadding(8)
+                .setPaddingLeft(16)
                 .add(new Paragraph("Week " + weekData.getWeekNumber())
                         .setFontSize(13)
                         .setBold()
@@ -242,9 +390,10 @@ public class PdfService {
                         .setFontColor(Theme.TEXT_PRIMARY)
                         .setFontSize(10))
                 .setMarginBottom(8);
+
     }
 
-    private static String formatDate(Date date) {
+    private static String formatDate(LocalDateTime date) {
         return date != null ?
                 new SimpleDateFormat("MMM dd, yyyy").format(date) :
                 "Not set";
@@ -261,9 +410,10 @@ public class PdfService {
     @Data
     @AllArgsConstructor
     public static class TaskData {
+        private String taskName;
         private String description;
-        private String assignee;
-        private Date dueDate;
+        private List<String> assignees;
+        private LocalDateTime completionDate;
         private String status;
     }
 }

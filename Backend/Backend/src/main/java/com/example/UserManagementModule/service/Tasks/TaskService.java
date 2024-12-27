@@ -97,4 +97,8 @@ public class TaskService {
     public List<Task> findCompletedTasksByStudent(String username) {
         return taskRepository.findCompletedTasksByStudent(username);
     }
+
+    public List<Task> findTasksByStudentId(String username){
+        return taskRepository.getTasksByStudentId(username);
+    }
 }

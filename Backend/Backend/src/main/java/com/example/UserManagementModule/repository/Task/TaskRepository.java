@@ -31,4 +31,7 @@ public interface TaskRepository extends JpaRepository<Task, String> {
             "WHERE s.username = :username " +
             "AND t.status = 'COMPLETED'")
     List<Task> findCompletedTasksByStudent(@Param("username") String username);
+
+    @Query("SELECT t FROM Task t JOIN t.assignee s WHERE s.username = :studentId")
+    List<Task> getTasksByStudentId(@Param("studentId") String studentId);
 }
