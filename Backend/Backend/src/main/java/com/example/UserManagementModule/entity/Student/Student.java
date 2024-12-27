@@ -3,6 +3,7 @@ package com.example.UserManagementModule.entity.Student;
 import com.example.UserManagementModule.entity.Faculty.Faculty;
 import com.example.UserManagementModule.entity.Providers;
 import com.example.UserManagementModule.entity.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -86,6 +87,7 @@ public class Student implements UserDetails, Serializable {
     // Add profile picture field
     @Lob
     @Column(columnDefinition = "LONGBLOB")
+    @JsonIgnore
     private byte[] profilePicture; // Store image as binary data
 
     @Override

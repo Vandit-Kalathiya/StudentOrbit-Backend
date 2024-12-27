@@ -19,9 +19,14 @@ import com.itextpdf.layout.properties.*;
 import com.studentOrbit.generate_report_app.entity.Student.Student;
 import com.studentOrbit.generate_report_app.entity.Task.Task;
 import jakarta.persistence.Column;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.aop.AopAutoConfiguration;
 import org.springframework.cglib.core.WeakCacheKey;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 
@@ -42,7 +48,9 @@ public class PdfService {
     @Autowired
     RestTemplate restTemplate;
 
-    public static String baseUrl = "http://localhost:1818/";
+    public static String baseUrl = "http://localhost:1818";
+    @Autowired
+    private AopAutoConfiguration aopAutoConfiguration;
 
     // Theme constants
     private static class Theme {
@@ -76,16 +84,39 @@ public class PdfService {
     }
 
     // Fetching WeekData and TaskData
-    public List<WeekData> fetchWeekData(String username, String groupName) {
+    public List<WeekData> fetchWeekData(String username, String groupName, HttpServletRequest request) {
         List<WeekData> weekDataList = new ArrayList<>();
+
+        // Extract token from cookies
+        String token = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt_token".equals(cookie.getName())) { // Replace "auth_token" with your cookie name
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token == null) {
+            throw new RuntimeException("Authentication token not found in cookies");
+        }
+        System.out.println("Token : --------------------------------" + token);
+        // Set the token in the Authorization header
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+
+        // Create an HttpEntity with headers
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         if (username != null) {
             // Fetch tasks from the external API
-            String url = baseUrl + "tasks/s/all/" + username;
+            String url = baseUrl + "/tasks/s/all/" + username;
+            System.out.println(url);
             List<Task> tasks = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
-                    null,
+                    entity,
                     new ParameterizedTypeReference<List<Task>>() {}
             ).getBody();
 
@@ -395,7 +426,7 @@ public class PdfService {
 
     private static String formatDate(LocalDateTime date) {
         return date != null ?
-                new SimpleDateFormat("MMM dd, yyyy").format(date) :
+                date.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) :
                 "Not set";
     }
 

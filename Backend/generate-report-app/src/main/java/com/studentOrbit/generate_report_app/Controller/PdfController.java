@@ -1,6 +1,7 @@
 package com.studentOrbit.generate_report_app.Controller;
 
 import com.studentOrbit.generate_report_app.Service.PdfService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +23,7 @@ public class PdfController {
     private PdfService pdfService;
 
     @GetMapping("/create/{username}/{groupName}")
-    public ResponseEntity<InputStreamResource> createPdf(@PathVariable String username, @PathVariable String groupName) {
+    public ResponseEntity<InputStreamResource> createPdf(@PathVariable String username, @PathVariable String groupName, HttpServletRequest request) {
 //        List<PdfService.TaskData> week1Tasks = List.of(
 //                new PdfService.TaskData(
 //                        "Implementation of user authentication",
@@ -80,8 +81,8 @@ public class PdfController {
 //                new PdfService.WeekData(3, week3Tasks)
 //        );
 
-        List<PdfService.WeekData> weekDataList = pdfService.fetchWeekData(username, groupName);
-        System.out.println("Username : "+username);
+        List<PdfService.WeekData> weekDataList = pdfService.fetchWeekData(username, groupName, request);
+        System.out.println(weekDataList);
         ByteArrayInputStream byteArrayInputStream = pdfService.createPdf("21CE121", weekDataList);
 
         HttpHeaders headers = new HttpHeaders();

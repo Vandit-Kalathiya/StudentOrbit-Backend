@@ -1,5 +1,7 @@
 package com.studentOrbit.generate_report_app.entity.Faculty;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.studentOrbit.generate_report_app.entity.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.studentOrbit.generate_report_app.entity.Batches.Batch;
@@ -71,10 +73,11 @@ public class Faculty implements UserDetails, Serializable {
             joinColumns = @JoinColumn(name = "faculties_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "roles_id", referencedColumnName = "id")
     )
+    @JsonIgnore
     private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
-    @JsonIgnore
+    @JsonManagedReference
     private List<Group> groups;
 
     @OneToMany(mappedBy = "assignedFaculty", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)

@@ -39,9 +39,8 @@ public class Task implements Serializable {
     )
     private List<Student> assignee;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "week_id")
-    @JsonBackReference
     private Week week;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)

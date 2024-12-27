@@ -33,24 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
 		String username = null;
 		String token = null;
 
-//		if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
-//			token = requestHeader.substring(7);
-//			username = jwtHelper.getUsernameFromToken(token);
-//
-//			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null && !jwtHelper.isBlacklisted(jwtToken)) {
-//				UserDetails userDetails = studentCustomUserDetailsService.loadUserByUsername(username);
-//
-//				if (!jwtHelper.isTokenExpired(token)) {
-//					UsernamePasswordAuthenticationToken authToken =
-//							new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//					SecurityContextHolder.getContext().setAuthentication(authToken);
-//				}
-//			}
-//		}
-
 		Cookie cookies[] = request.getCookies();
+		System.out.println("Outside...........");
 		if (cookies != null) {
+			System.out.println("Cookies is not nulll..........");
 			for (Cookie cookie : cookies) {
 //				System.out.println(cookie.getName()+" : "+cookie.getValue());
 				if ("jwt_token".equals(cookie.getName())) {
@@ -65,6 +51,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
 						System.out.println("-----------------done------------------");
 					}
 					break;
+				}
+			}
+		}
+		else if (requestHeader != null && requestHeader.startsWith("Bearer ")) {
+			token = requestHeader.substring(7);
+			username = jwtHelper.getUsernameFromToken(token);
+
+			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null && !jwtHelper.isBlacklisted(token)) {
+				UserDetails userDetails = studentCustomUserDetailsService.loadUserByUsername(username);
+
+				if (!jwtHelper.isTokenExpired(token)) {
+					UsernamePasswordAuthenticationToken authToken =
+							new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+					SecurityContextHolder.getContext().setAuthentication(authToken);
 				}
 			}
 		}

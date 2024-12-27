@@ -1,5 +1,7 @@
 package com.studentOrbit.generate_report_app.entity.Groups;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.studentOrbit.generate_report_app.Helper.TaskStatus;
 import com.studentOrbit.generate_report_app.entity.Batches.Batch;
@@ -38,7 +40,7 @@ public class Group implements Serializable {
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
-    @JsonManagedReference
+    @JsonIgnore
     private Set<Student> students;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -61,6 +63,7 @@ public class Group implements Serializable {
     private String projectStatus = TaskStatus.IN_PROGRESS.name();
 
     @ManyToOne
+    @JsonBackReference
     private Faculty mentor;
 
     @CreatedDate

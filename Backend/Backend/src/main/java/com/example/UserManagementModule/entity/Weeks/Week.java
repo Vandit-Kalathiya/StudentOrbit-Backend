@@ -32,7 +32,7 @@ public class Week implements Serializable {
     private Group group;
 
     @OneToMany(mappedBy = "week", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
-    @JsonManagedReference
+    @JsonBackReference
     private List<Task> tasks;
 
     private LocalDate startDate;

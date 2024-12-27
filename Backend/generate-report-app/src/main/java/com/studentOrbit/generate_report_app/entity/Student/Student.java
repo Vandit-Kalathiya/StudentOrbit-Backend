@@ -1,5 +1,7 @@
 package com.studentOrbit.generate_report_app.entity.Student;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.studentOrbit.generate_report_app.entity.Faculty.Faculty;
 import com.studentOrbit.generate_report_app.entity.Providers;
 import com.studentOrbit.generate_report_app.entity.Role;
@@ -77,6 +79,7 @@ public class Student implements UserDetails, Serializable {
     private Set<Skills> skills;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonBackReference
     private Faculty mentor;
 
     @CreatedDate
@@ -89,6 +92,7 @@ public class Student implements UserDetails, Serializable {
     // Add profile picture field
     @Lob
     @Column(columnDefinition = "LONGBLOB")
+    @JsonIgnore
     private byte[] profilePicture; // Store image as binary data
 
     @Override
