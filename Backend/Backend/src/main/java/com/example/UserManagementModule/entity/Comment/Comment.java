@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ public class Comment implements Serializable {
     private Faculty faculty;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @ToString.Exclude
     private Task task;
 
     private LocalDate date;

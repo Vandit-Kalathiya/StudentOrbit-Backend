@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -44,6 +45,7 @@ public class Task implements Serializable {
     @JsonIgnoreProperties("tasks")
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "week_id")
+    @ToString.Exclude
 //    @JsonBackReference
     private Week week;
 

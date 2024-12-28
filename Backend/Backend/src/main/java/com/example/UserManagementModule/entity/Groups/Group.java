@@ -29,6 +29,8 @@ public class Group implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    private String uniqueGroupId;
+
     private String groupName;
 
     private String groupDescription;

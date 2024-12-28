@@ -62,6 +62,9 @@ public class FacultyGroupController {
         Group group = new Group();
         group.setGroupName(groupRequest.getGroupName());
         group.setGroupDescription(groupRequest.getDescription());
+        int sem = Integer.parseInt(groupRequest.getBatchName().substring(0,1));
+        int year = sem%2==0?(Integer) (sem/2):(Integer) (sem/2)+1;
+        group.setUniqueGroupId(groupService.generateUniqueID(groupRequest.getStudents().stream().toList().getFirst(),year,sem, groupRequest.getBatchName().substring(1)));
 
         Set<String> technologies = new HashSet<>();
         groupRequest.getTechnologies().forEach(tech -> technologies.add(tech));
@@ -149,5 +152,12 @@ public class FacultyGroupController {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/week/{name}")
+    public ResponseEntity<?> getWeekCount(@PathVariable String name) {
+        System.out.println("controller " + name);
+        int weekCount = groupService.getWeekCount(name);
+        return new ResponseEntity<>(weekCount, HttpStatus.OK);
     }
 }
