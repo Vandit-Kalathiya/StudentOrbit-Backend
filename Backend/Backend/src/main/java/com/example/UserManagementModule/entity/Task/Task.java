@@ -5,6 +5,8 @@ import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Weeks.Week;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,8 +41,10 @@ public class Task implements Serializable {
     )
     private List<Student> assignee;
 
+    @JsonIgnoreProperties("tasks")
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "week_id")
+//    @JsonBackReference
     private Week week;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)

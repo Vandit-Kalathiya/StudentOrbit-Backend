@@ -3,6 +3,7 @@ package com.example.UserManagementModule.entity.Weeks;
 import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Task.Task;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,7 +33,8 @@ public class Week implements Serializable {
     private Group group;
 
     @OneToMany(mappedBy = "week", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
-    @JsonBackReference
+    @JsonManagedReference
+//    @JsonBackReference
     private List<Task> tasks;
 
     private LocalDate startDate;

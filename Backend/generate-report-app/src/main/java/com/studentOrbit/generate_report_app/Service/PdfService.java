@@ -91,7 +91,7 @@ public class PdfService {
         String token = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("jwt_token".equals(cookie.getName())) { // Replace "auth_token" with your cookie name
+                if ("jwt_token".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
                 }
