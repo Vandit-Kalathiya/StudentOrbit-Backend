@@ -22,4 +22,6 @@ public interface GroupRepository extends JpaRepository<Group, String> {
 
     @Query("SELECT g FROM Group g JOIN g.students s WHERE s.username = :sid and g.projectStatus = 'IN_PROGRESS'")
     public List<Group> findGroupsByStudentIdAndProjectStatus(@Param("sid") String sid);
+
+    public Optional<Group> findGroupByUniqueGroupId(String gid);
 }

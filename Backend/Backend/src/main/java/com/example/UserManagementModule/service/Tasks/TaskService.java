@@ -1,6 +1,5 @@
 package com.example.UserManagementModule.service.Tasks;
 
-import com.example.UserManagementModule.Helper.TaskStatus;
 import com.example.UserManagementModule.dto.Task.TaskRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Groups.Group;
@@ -12,7 +11,6 @@ import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

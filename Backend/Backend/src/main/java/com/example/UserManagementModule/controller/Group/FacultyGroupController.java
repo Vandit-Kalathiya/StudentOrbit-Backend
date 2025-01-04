@@ -156,8 +156,17 @@ public class FacultyGroupController {
 
     @GetMapping("/week/{name}")
     public ResponseEntity<?> getWeekCount(@PathVariable String name) {
-        System.out.println("controller " + name);
         int weekCount = groupService.getWeekCount(name);
         return new ResponseEntity<>(weekCount, HttpStatus.OK);
+    }
+
+    @GetMapping("/gid/{gid}")
+    public ResponseEntity<?> getGroupByGroupId(@PathVariable String gid) {
+        return new ResponseEntity<>(groupService.getGroupByGroupId(gid), HttpStatus.OK);
+    }
+
+    @GetMapping("/members/{gid}")
+    public ResponseEntity<?> getGroupMembers(@PathVariable String gid) {
+        return new ResponseEntity<>(groupService.getGroupMembers(gid), HttpStatus.OK);
     }
 }

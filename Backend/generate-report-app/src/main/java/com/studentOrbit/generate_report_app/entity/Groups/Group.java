@@ -34,6 +34,8 @@ public class Group implements Serializable {
 
     private String groupDescription;
 
+    private String uniqueGroupId;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "group_members",

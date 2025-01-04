@@ -9,6 +9,7 @@ import com.example.UserManagementModule.repository.Batch.BatchRepository;
 import com.example.UserManagementModule.repository.Group.GroupRepository;
 import com.example.UserManagementModule.repository.Group.UniqueGroupIdRepository;
 import com.example.UserManagementModule.service.Student.StudentService;
+import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -118,27 +119,31 @@ public class FacultyGroupService {
 
     public int getWeekCount(String name) {
         Optional<Group> g = getGroupByName(name);
-        System.out.println("Week size "+g.get().getWeeks().size());
         int count = 0;
         Group group = g.get();
-        System.out.println("Group name " + group.getWeeks());
         List<Week> weeks = group.getWeeks();
 
         for (Week week : weeks) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate startDate = LocalDate.parse(week.getStartDate().toString(), formatter);
             LocalDate endDate = LocalDate.parse(week.getEndDate().toString(), formatter);
 
-            System.out.println("Week " + startDate + " - " + endDate);
-
             if (endDate.isBefore(LocalDate.now())) {
-                count++;
-            } else if (startDate.isBefore(LocalDate.now()) && endDate.isAfter(LocalDate.now())) {
                 count++;
             }
         }
 
         return count;
+    }
+
+    public Group getGroupByGroupId(String gid) {
+        return groupRepository.findGroupByUniqueGroupId(gid)
+            .orElseThrow(() -> new NotFoundException("Group not found with unique group id " + gid));
+    }
+
+    public Set<Student> getGroupMembers(String gid) {
+        return groupRepository.findGroupByUniqueGroupId(gid)
+           .map(Group::getStudents)
+           .orElseThrow(() -> new NotFoundException("Group not found with unique group id " + gid));
     }
 }
 

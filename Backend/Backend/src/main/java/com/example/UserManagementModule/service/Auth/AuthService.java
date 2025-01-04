@@ -59,11 +59,9 @@ public class AuthService {
         jwtToken.setUsername(userDetails.getUsername());
         JwtToken savedToken = tokenService.saveToken(jwtToken);
 
-        // Create a session ID and store it in the database
         String sessionId = UUID.randomUUID().toString();
         this.saveSessionId(userDetails.getUsername(), sessionId);
 
-        // Set session ID in the database and JWT token in the cookie
         Cookie jwtCookie = new Cookie("jwt_token", token);
         jwtCookie.setHttpOnly(false);
         jwtCookie.setSecure(false); // Only for HTTPS

@@ -27,7 +27,7 @@ public class Week implements Serializable {
 
     private int weekNumber;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "student_group_id")
     @JsonBackReference // To avoid infinite recursion when serializing group
     private Group group;
