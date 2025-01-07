@@ -88,11 +88,15 @@ public class PdfService {
 
     private static Group groupData;
 
+    private static String reportType;
+
+    private static String studentId;
+
     private static List<Student> members;
 
     // Fetching WeekData and TaskData
     public List<WeekData> fetchWeekData(PdfGenerateRequest pdfGenerateRequest, HttpServletRequest request) {
-        String type = pdfGenerateRequest.getReportType();
+            String type = pdfGenerateRequest.getReportType();
 
         List<WeekData> weekDataList = new ArrayList<>();
 
@@ -138,6 +142,11 @@ public class PdfService {
 
         assert group != null;
         groupData = group;
+        reportType = pdfGenerateRequest.getReportType();
+
+        if(type.equalsIgnoreCase("student")){
+            studentId = pdfGenerateRequest.getIdentifier();
+        }
             List<Week> weeks = group.getWeeks();
         List<Task> tasks = new ArrayList<>();
 
@@ -291,53 +300,52 @@ public class PdfService {
     // Header component
     private static class Header {
         static void add(Document document, String username) {
-            Table header = new Table(UnitValue.createPercentArray(new float[]{2, 1}))
+            // Create a table with three columns for left, center, and right alignment
+            Table header = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1})) // Adjust column widths
                     .setWidth(UnitValue.createPercentValue(100))
                     .setBackgroundColor(Theme.WHITE)
                     .setMarginTop(20.0f);
 
-            // Logo and Title
-            Cell titleCell = new Cell()
-//                    .add(new Paragraph("StudentOrbit")
-//                            .setFontSize(12)
-//                            .setFontColor(Theme.TEXT_PRIMARY)
-//                            .setMarginBottom(5))
-                    .add(new Paragraph("Project Progress Report")
+            // Subject Cell: Left aligned, bold
+            Cell subjectCell = new Cell()
+                    .add(new Paragraph("CE396")
                             .setFontSize(12)
+                            .setBold()
+                            .setFontColor(Theme.TEXT_PRIMARY)
+                            .setTextAlignment(TextAlignment.LEFT))
+                    .setBorder(null)
+                    .setPaddingTop(10f);
+
+            // Title Cell: Center aligned, bold
+            Cell titleCell = new Cell()
+                    .add(new Paragraph("Project Progress Report")
+                            .setFontSize(14)
                             .setBold()
                             .setTextAlignment(TextAlignment.CENTER)
                             .setFontColor(Theme.TEXT_PRIMARY))
-                    .setBorder(null);
+                    .setBorder(null)
+                    .setPaddingTop(10f);
 
-            Cell subjectCell = new Cell()
-                    .add(new Paragraph("CE396"))
-                    .setFontSize(12)
-                    .setBold()
-                    .setFontColor(Theme.TEXT_PRIMARY)
-                    .setTextAlignment(TextAlignment.LEFT)
-                    .setBorder(null);
-//                    .setPaddingTop(9.0f);
-
-            // Student Info
+            // Info Cell: Right aligned, bold
             Cell infoCell = new Cell()
-//                    .add(new Paragraph("Student ID")
-//                            .setFontSize(12)
-//                            .setFontColor(Theme.PRIMARY) // Approximated opacity
-//                            .setMarginBottom(5))
-                    .add(new Paragraph(groupData.getUniqueGroupId())
+                    .add(new Paragraph(reportType.equalsIgnoreCase("student") ? studentId : groupData.getUniqueGroupId())
                             .setFontSize(12)
                             .setBold()
                             .setFontColor(Theme.TEXT_PRIMARY))
                     .setTextAlignment(TextAlignment.RIGHT)
-                    .setBorder(null);
-//                    .setPaddingTop(9.0f);
+                    .setBorder(null)
+                    .setPaddingTop(10f);
 
+            // Add the cells to the table (left, center, right)
             header.addCell(subjectCell);
-//            header.addCell(titleCell);
+            header.addCell(titleCell);
             header.addCell(infoCell);
 
+            // Add table to document
             document.add(header);
-            document.add(new Paragraph().setMarginBottom(30));
+
+            // Add extra space after the header
+            document.add(new Paragraph().setMarginBottom(30));  // Extra space after the header
         }
     }
 

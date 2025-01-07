@@ -10,15 +10,12 @@ import com.example.UserManagementModule.repository.Task.TaskRepository;
 import com.example.UserManagementModule.service.Student.StudentService;
 import com.example.UserManagementModule.service.Tasks.TaskService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+
 import java.util.List;
-import java.util.Objects;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -50,7 +47,6 @@ public class TasksController {
         return ResponseEntity.ok(taskService.changeTaskStatus(id, status));
     }
 
-    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/{id}")
     public ResponseEntity<Task> assignAssigneeToTask(@PathVariable String id, @RequestBody List<String> assigneeIds) {
 //        System.out.println(assigneeIds);
