@@ -52,7 +52,7 @@ public class TasksController {
 
     @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/{id}")
-    public ResponseEntity<Task> assignAssigneeToTask(@PathVariable String id, @RequestBody List<String> assigneeIds) throws Exception {
+    public ResponseEntity<Task> assignAssigneeToTask(@PathVariable String id, @RequestBody List<String> assigneeIds) {
 //        System.out.println(assigneeIds);
         Task task = taskRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + id));
         List<Student> assignees = task.getAssignee();

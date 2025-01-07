@@ -1,6 +1,5 @@
 package com.example.UserManagementModule.controller.Group;
 
-import com.example.UserManagementModule.Helper.TaskStatus;
 import com.example.UserManagementModule.dto.Group.GroupRequest;
 import com.example.UserManagementModule.entity.Batches.Batch;
 import com.example.UserManagementModule.entity.Groups.Group;
@@ -9,7 +8,6 @@ import com.example.UserManagementModule.entity.Weeks.Week;
 import com.example.UserManagementModule.service.Batch.BatchService;
 import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import com.example.UserManagementModule.service.Student.StudentService;
-import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
