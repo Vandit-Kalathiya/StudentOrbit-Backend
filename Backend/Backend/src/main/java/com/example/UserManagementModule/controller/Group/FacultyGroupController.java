@@ -3,8 +3,10 @@ package com.example.UserManagementModule.controller.Group;
 import com.example.UserManagementModule.dto.Group.GroupRequest;
 import com.example.UserManagementModule.entity.Batches.Batch;
 import com.example.UserManagementModule.entity.Groups.Group;
+import com.example.UserManagementModule.entity.Groups.Technology;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Weeks.Week;
+import com.example.UserManagementModule.repository.Group.TechnologyRepository;
 import com.example.UserManagementModule.service.Batch.BatchService;
 import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import com.example.UserManagementModule.service.Student.StudentService;
@@ -31,6 +33,8 @@ public class FacultyGroupController {
 
     @Autowired
     private BatchService batchService;
+    @Autowired
+    private TechnologyRepository technologyRepository;
 
     @GetMapping("/allGroups")
     public ResponseEntity<List<Group>> getAllGroups() {
@@ -64,8 +68,18 @@ public class FacultyGroupController {
         int year = sem%2==0?(Integer) (sem/2):(Integer) (sem/2)+1;
         group.setUniqueGroupId(groupService.generateUniqueID(groupRequest.getStudents().stream().toList().getFirst(),year,sem, groupRequest.getBatchName().substring(1)));
 
-        Set<String> technologies = new HashSet<>();
-        groupRequest.getTechnologies().forEach(tech -> technologies.add(tech));
+        List<Technology> technologies = new ArrayList<>();
+
+        groupRequest.getTechnologies().forEach(tech -> {
+            Optional<Technology> technology = technologyRepository.findByName(tech.toLowerCase());
+            if(technology.isPresent()){
+                technologies.add(technology.get());
+            }else{
+                Technology newTechnology = Technology.builder().name(tech.toLowerCase()).build();
+                Technology newTech = technologyRepository.save(newTechnology);
+                technologies.add(newTech);
+            }
+        });
 
         group.setTechnologies(technologies);
 

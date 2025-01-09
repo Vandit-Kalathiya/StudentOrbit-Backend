@@ -76,11 +76,11 @@ public class Faculty implements UserDetails, Serializable {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mentor", orphanRemoval = true,fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Group> groups;
 
-    @OneToMany(mappedBy = "assignedFaculty", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "assignedFaculty", orphanRemoval = true,fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Batch> batches;
 

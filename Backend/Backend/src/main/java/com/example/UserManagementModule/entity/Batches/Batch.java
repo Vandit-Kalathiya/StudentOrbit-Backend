@@ -61,6 +61,7 @@
         private String academicYear = LocalDateTime.now().getYear() + "";
 
         @ManyToOne
+        @JoinColumn(name = "faculty_id")
         private Faculty assignedFaculty;
 
         public void addGroup(Group group) {

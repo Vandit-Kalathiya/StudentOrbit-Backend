@@ -77,9 +77,13 @@ public class FacultyBatchController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBatch(@PathVariable String id) {
-        batchService.deleteBatch(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<String> deleteBatch(@PathVariable String id) {
+        try {
+            batchService.deleteBatch(id);
+            return ResponseEntity.ok("Batch deleted successfully");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete batch: " + e.getMessage());
+        }
     }
 
     @GetMapping("/b/{username}")

@@ -44,9 +44,15 @@ public class Group implements Serializable {
     @JsonManagedReference
     private Set<Student> students;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "group_technologies", joinColumns = @JoinColumn(name = "group_id"))
-    private Set<String> technologies;
+//    @ElementCollection(fetch = FetchType.EAGER)
+//    @CollectionTable(name = "group_technologies", joinColumns = @JoinColumn(name = "group_id"))
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "group_technologies",
+            joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "technology_id")
+    )
+    private List<Technology> technologies;
 
     private String batchName;
 

@@ -62,7 +62,7 @@ public class FacultyService {
         return null;
     }
 
-    @CacheEvict(value = "facultyList", allEntries = true)
+//    @CacheEvict(value = "facultyList", allEntries = true)
     public void createFaculty(FacultyRegisterRequest facultyRequest) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = bCryptPasswordEncoder.encode(facultyRequest.getPassword());

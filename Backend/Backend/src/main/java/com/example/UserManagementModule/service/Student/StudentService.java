@@ -33,7 +33,7 @@ public class StudentService {
         this.skillsRepository = skillsRepository;
     }
 
-    @CacheEvict(value = "students", allEntries = true)
+//    @CacheEvict(value = "students", allEntries = true)
     public void createStudent(StudentResgisterRequest studentRequest) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = bCryptPasswordEncoder.encode(studentRequest.getPassword());
