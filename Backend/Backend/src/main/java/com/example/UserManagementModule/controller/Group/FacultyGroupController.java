@@ -138,10 +138,9 @@ public class FacultyGroupController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteGroup(@PathVariable String id) {
+    public ResponseEntity<String> deleteGroup(@PathVariable String id) {
         if (groupService.getGroupById(id).isPresent()) {
-            groupService.deleteGroup(id);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(groupService.deleteGroup(id));
         }
         return ResponseEntity.notFound().build();
     }

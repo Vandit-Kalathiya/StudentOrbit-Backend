@@ -147,7 +147,8 @@ public class PdfService {
         if(type.equalsIgnoreCase("student")){
             studentId = pdfGenerateRequest.getIdentifier();
         }
-            List<Week> weeks = group.getWeeks();
+
+        List<Week> weeks = group.getWeeks();
         List<Task> tasks = new ArrayList<>();
 
         if (type.equalsIgnoreCase("student")) {

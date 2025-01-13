@@ -37,7 +37,7 @@ public class FacultyService {
     }
 
 //    @Cacheable(value = "faculty", key = "#facultyName")
-    public Faculty findFacultyByFacultyName(String facultyName) {
+    public Faculty findFacultyByUserName(String facultyName) {
         System.out.println("------------------------------------------"+facultyName+"-----------------------------------");
         return facultyRepository.findByUsername(facultyName).get();
     }

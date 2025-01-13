@@ -46,13 +46,13 @@ public class FacultyBatchController {
         batch.setEndId(batchRequest.getEndId().toUpperCase());
         batch.setCreatedAt(LocalDateTime.now());
 
-        Faculty faculty = facultyService.findFacultyByFacultyName(batchRequest.getAssignedFacultyUsername());
+        Faculty faculty = facultyService.findFacultyByUserName(batchRequest.getAssignedFacultyUsername());
+        if(faculty == null){
+            throw new NotFoundException("Faculty not found for faculty username : "+ batchRequest.getAssignedFacultyUsername());
+        }
         batch.setAssignedFaculty(faculty);
         Batch savedBatch = batchService.saveBatch(batch);
 
-        if(faculty == null){
-            throw new NotFoundException("Faculty not found for faculty id : "+ batchRequest.getAssignedFacultyUsername());
-        }
 
         faculty.addBatch(savedBatch);
         return new ResponseEntity<>(batchService.saveBatch(batch), HttpStatus.CREATED);
@@ -78,23 +78,23 @@ public class FacultyBatchController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBatch(@PathVariable String id) {
-        try {
+//        try {
             batchService.deleteBatch(id);
             return ResponseEntity.ok("Batch deleted successfully");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete batch: " + e.getMessage());
-        }
+//        } catch (Exception e) {
+//            return ResponseEntity.internalServerError().body(e.getMessage());
+//        }
     }
 
     @GetMapping("/b/{username}")
     public ResponseEntity<List<Batch>> getBatchesByUsername(@PathVariable String username) {
-        System.out.println(facultyService.findFacultyByFacultyName(username).getBatches()+"------------------------------------------");
-        return ResponseEntity.ok(facultyService.findFacultyByFacultyName(username).getBatches());
+//        System.out.println(facultyService.findFacultyByUserName(username).getBatches()+"------------------------------------------");
+        return ResponseEntity.ok(facultyService.findFacultyByUserName(username).getBatches());
     }
 
     @GetMapping("/g/{username}")
     public ResponseEntity<List<Group>> getGroupsByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(facultyService.findFacultyByFacultyName(username).getGroups());
+        return ResponseEntity.ok(facultyService.findFacultyByUserName(username).getGroups());
     }
 
     @GetMapping("/allGroups/{sem}/{batchName}")

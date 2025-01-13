@@ -32,7 +32,7 @@ public class CommentService {
         Comment comment = new Comment();
         comment.setCommentDescription(commentRequest.getCommentDescription());
         System.out.println(commentRequest.getFacultyId());
-        Faculty faculty = facultyService.findFacultyByFacultyName(commentRequest.getFacultyId());
+        Faculty faculty = facultyService.findFacultyByUserName(commentRequest.getFacultyId());
         faculty.addComment(comment);
         comment.setFaculty(faculty);
 

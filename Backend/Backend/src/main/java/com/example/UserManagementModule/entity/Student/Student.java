@@ -54,7 +54,7 @@ public class Student implements UserDetails, Serializable {
     @Column(nullable = false)
     private Providers providers = Providers.SELF;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",
             joinColumns = @JoinColumn(name = "students_id", referencedColumnName = "id"),
@@ -66,7 +66,7 @@ public class Student implements UserDetails, Serializable {
 
     private String linkedInUrl;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "student_skills",
             joinColumns = @JoinColumn(name = "student_id"),
@@ -74,7 +74,7 @@ public class Student implements UserDetails, Serializable {
     )
     private Set<Skills> skills;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     private Faculty mentor;
 
     @CreatedDate

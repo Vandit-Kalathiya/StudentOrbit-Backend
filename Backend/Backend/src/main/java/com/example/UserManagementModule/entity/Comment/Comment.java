@@ -2,6 +2,7 @@ package com.example.UserManagementModule.entity.Comment;
 
 import com.example.UserManagementModule.entity.Faculty.Faculty;
 import com.example.UserManagementModule.entity.Task.Task;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,13 +28,25 @@ public class Comment implements Serializable {
     private String commentDescription;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @ToString.Exclude
     private Faculty faculty;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @ToString.Exclude
+    @JsonIgnore
     private Task task;
 
     private LocalDate date;
 
     private LocalTime time;
+
+    @PreRemove
+    private void preRemove() {
+        if (faculty != null) {
+            faculty.getComments().remove(this);
+        }
+        if (task != null) {
+            task.getComments().remove(this);
+        }
+    }
 }

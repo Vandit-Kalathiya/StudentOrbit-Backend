@@ -45,4 +45,9 @@ public class Week implements Serializable {
         task.setWeek(this);
         this.tasks.add(task);
     }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
+        task.setWeek(null);
+    }
 }
