@@ -1,4 +1,4 @@
-package com.example.UserManagementModule.repository.Group;
+package com.example.UserManagementModule.repository.Technology;
 
 import com.example.UserManagementModule.entity.Groups.Technology;
 import org.springframework.data.jpa.repository.JpaRepository;

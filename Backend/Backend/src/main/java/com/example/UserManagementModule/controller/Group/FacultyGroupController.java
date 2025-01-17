@@ -6,7 +6,7 @@ import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Groups.Technology;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Weeks.Week;
-import com.example.UserManagementModule.repository.Group.TechnologyRepository;
+import com.example.UserManagementModule.repository.Technology.TechnologyRepository;
 import com.example.UserManagementModule.service.Batch.BatchService;
 import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import com.example.UserManagementModule.service.Student.StudentService;
