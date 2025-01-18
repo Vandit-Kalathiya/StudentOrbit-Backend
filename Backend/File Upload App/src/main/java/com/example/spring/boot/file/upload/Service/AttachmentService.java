@@ -6,7 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -26,7 +30,7 @@ public class AttachmentService {
             Attachment attachment
                     = new Attachment(fileName,
                     file.getContentType(),
-                    file.getBytes(),taskId);
+                    file.getBytes(),taskId, LocalDate.now(), LocalTime.now());
             return attachmentRepository.save(attachment);
 
         } catch (Exception e) {
@@ -39,5 +43,9 @@ public class AttachmentService {
                 .findById(fileId)
                 .orElseThrow(
                         () -> new Exception("File not found with Id: " + fileId));
+    }
+
+    public List<Attachment> getAllAttechmentsOfTask(String taskId) {
+        return attachmentRepository.findByTaskId(taskId);
     }
 }

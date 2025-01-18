@@ -99,4 +99,28 @@ public class TaskService {
     public List<Task> findTasksByStudentId(String username){
         return taskRepository.getTasksByStudentId(username);
     }
+
+    public Task updateTask(String id, TaskRequest taskRequest) {
+        Task task = taskRepository.findById(id).get();
+        task.setName(taskRequest.getTaskName());
+        task.setDescription(taskRequest.getTaskDescription());
+        task.setStatus(taskRequest.getTaskStatus());
+        return taskRepository.save(task);
+    }
+
+    public String deleteTask(String taskId, String groupId, Integer weekNo){
+        Group group = facultyGroupService.getGroupById(groupId).orElseThrow(() ->
+                new RuntimeException("Group not found with ID: " + groupId));
+
+        Week week = weekRepository.findByWeekNumberAndGroup(weekNo, group).orElseThrow(() ->
+                new RuntimeException("Week not found for number " + weekNo + " in group " + group.getGroupName()));
+
+        Task task = taskRepository.findById(taskId).orElseThrow(() ->
+                new RuntimeException("Task not found with ID: " + taskId));
+
+        week.removeTask(task);
+        weekRepository.save(week);
+        taskRepository.deleteById(taskId);
+        return "Task deleted successfully";
+    }
 }

@@ -101,4 +101,14 @@ public class TasksController {
     public ResponseEntity<List<Task>> getTasksOfStudent(@PathVariable String username){
         return ResponseEntity.ok(taskService.findTasksByStudentId(username));
     }
+
+    @PutMapping("/{taskId}")
+    public ResponseEntity<Task> updateTask(@PathVariable String taskId, @RequestBody TaskRequest taskRequest) {
+        return ResponseEntity.ok(taskService.updateTask(taskId, taskRequest));
+    }
+
+    @DeleteMapping("/{taskId}/{groupId}/{weekNo}")
+    public ResponseEntity<String> deleteTask(@PathVariable String taskId, @PathVariable String groupId, @PathVariable Integer weekNo) {
+        return ResponseEntity.ok(taskService.deleteTask(taskId, groupId, weekNo));
+    }
 }
