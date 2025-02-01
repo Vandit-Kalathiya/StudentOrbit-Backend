@@ -1,26 +1,25 @@
-package com.studentOrbit.generate_report_app.entity.Student;
+package com.studentOrbit.generate_report_app.entity.Groups;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Entity
-@Table(name = "skills")
+@Table(name = "technology")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Skills implements Serializable {
+@Builder
+public class Technology implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(nullable = false)
     private String name;
-
-    public Skills(String skill) {
-        this.name = skill;
-    }
 }

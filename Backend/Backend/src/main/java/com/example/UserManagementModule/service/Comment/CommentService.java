@@ -7,6 +7,7 @@ import com.example.UserManagementModule.entity.Task.Task;
 import com.example.UserManagementModule.repository.Comment.CommentRepository;
 import com.example.UserManagementModule.repository.Task.TaskRepository;
 import com.example.UserManagementModule.service.Faculty.FacultyService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -46,8 +47,27 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    @Cacheable(value = "comment",key = "#id")
+    @Cacheable(value = "comment", key = "#id")
     public Comment getCommentById(String id) {
         return commentRepository.findById(id).get();
     }
+
+    public String deleteCommentById(String commentId, String taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Task with ID " + taskId + " not found"));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Comment with ID " + commentId + " not found"));
+
+        if (!task.getComments().contains(comment)) {
+            throw new IllegalArgumentException("Comment with ID " + commentId + " does not belong to Task with ID " + taskId);
+        }
+
+        task.removeComment(comment);
+        taskRepository.save(task); // Save changes to maintain task integrity
+        commentRepository.deleteById(commentId);
+
+        return "Comment Deleted Successfully";
+    }
+
 }

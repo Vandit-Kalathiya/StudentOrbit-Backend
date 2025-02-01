@@ -1,4 +1,4 @@
-package com.studentOrbit.generate_report_app.entity.Student;
+package com.studentOrbit.generate_report_app.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -6,21 +6,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Entity
-@Table(name = "skills")
+@Table(name = "black_listed_token")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Skills implements Serializable {
+public class BlackListedToken implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String name;
+    private String token;
 
-    public Skills(String skill) {
-        this.name = skill;
-    }
+    private Date expiryDate;
+
 }

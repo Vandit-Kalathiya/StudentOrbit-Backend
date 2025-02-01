@@ -1,4 +1,4 @@
-package com.studentOrbit.generate_report_app.entity.Student;
+package com.studentOrbit.generate_report_app.entity.Token;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,19 +8,17 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "skills")
+@Table(name = "jwt_token")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Skills implements Serializable {
+public class JwtToken implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String name;
+    private String token;
 
-    public Skills(String skill) {
-        this.name = skill;
-    }
+    private String username;
 }

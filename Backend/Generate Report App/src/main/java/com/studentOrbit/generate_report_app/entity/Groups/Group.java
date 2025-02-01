@@ -1,13 +1,11 @@
 package com.studentOrbit.generate_report_app.entity.Groups;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.studentOrbit.generate_report_app.Helper.TaskStatus;
 import com.studentOrbit.generate_report_app.entity.Batches.Batch;
 import com.studentOrbit.generate_report_app.entity.Faculty.Faculty;
 import com.studentOrbit.generate_report_app.entity.Student.Student;
 import com.studentOrbit.generate_report_app.entity.Weeks.Week;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -15,11 +13,12 @@ import org.springframework.data.annotation.CreatedDate;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-//@Entity
-//@Table(name = "student_groups")
+@Entity
+@Table(name = "student_groups")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,42 +29,45 @@ public class Group implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    private String uniqueGroupId;
+
     private String groupName;
 
     private String groupDescription;
 
-    private String uniqueGroupId;
-
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "group_members",
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
-    @JsonIgnore
-    private Set<Student> students;
+    private Set<Student> students = new HashSet<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "group_technologies", joinColumns = @JoinColumn(name = "group_id"))
-    private Set<String> technologies;
+    @ManyToMany
+    @JoinTable(
+            name = "group_technologies",
+            joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "technology_id")
+    )
+    private List<Technology> technologies = new ArrayList<>();
 
     private String batchName;
 
-    @ManyToOne
-    @ToString.Exclude // Prevents recursion
+    @ManyToOne(fetch = FetchType.EAGER)
+    @ToString.Exclude
+    @JsonIgnore
     private Batch batch;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference // To manage the serialization of weeks
-    @ToString.Exclude // Prevents recursion
+    @ToString.Exclude
     private List<Week> weeks = new ArrayList<>();
 
     private String groupLeader;
 
     private String projectStatus = TaskStatus.IN_PROGRESS.name();
 
-    @ManyToOne
-    @JsonBackReference
+    @ManyToOne(fetch = FetchType.EAGER)
+    @ToString.Exclude
     private Faculty mentor;
 
     @CreatedDate
@@ -75,7 +77,39 @@ public class Group implements Serializable {
     private String startDate;
 
     public void addWeek(Week week) {
+        weeks.add(week);
         week.setGroup(this);
-        this.weeks.add(week);
+    }
+
+    public void removeWeek(Week week) {
+        weeks.remove(week);
+        week.setGroup(null);
+    }
+
+    public void addStudent(Student student) {
+        students.add(student);
+    }
+
+    public void removeStudent(Student student) {
+        students.remove(student);
+    }
+
+    public void addTechnology(Technology technology) {
+        technologies.add(technology);
+    }
+
+    public void removeTechnology(Technology technology) {
+        technologies.remove(technology);
+    }
+
+    @PreRemove
+    private void preRemove() {
+        students.clear();
+        if (batch != null) {
+            batch.getGroups().remove(this);
+        }
+        if (mentor != null) {
+            mentor.getGroups().remove(this);
+        }
     }
 }

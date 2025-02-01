@@ -12,6 +12,7 @@ import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import com.example.UserManagementModule.service.Student.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -172,9 +173,12 @@ public class FacultyGroupController {
     }
 
     @GetMapping("/gid/{gid}")
-    public ResponseEntity<?> getGroupByGroupId(@PathVariable String gid) {
-        return new ResponseEntity<>(groupService.getGroupByGroupId(gid), HttpStatus.OK);
+    public ResponseEntity<Group> getGroupByGroupId(@PathVariable String gid) {
+        Group group = groupService.getGroupByGroupId(gid);
+        System.out.println(group);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(group);
     }
+
 
     @GetMapping("/members/{gid}")
     public ResponseEntity<?> getGroupMembers(@PathVariable String gid) {

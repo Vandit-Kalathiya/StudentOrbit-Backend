@@ -28,6 +28,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 import lombok.Data;
@@ -107,7 +108,7 @@ public class PdfService {
         if (token == null) {
             throw new RuntimeException("Authentication token not found in cookies");
         }
-        System.out.println("Token : --------------------------------" + token);
+        System.out.println("Token : --------------------------------" + pdfGenerateRequest.getProjectName());
         // Set the token in the Authorization header
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
@@ -117,12 +118,22 @@ public class PdfService {
 
         String url = baseUrl + "/faculty/groups/" + ("gid/" + pdfGenerateRequest.getProjectName());
         System.out.println(url);
-        Group group = restTemplate.exchange(
+//        Group group = restTemplate.exchange(
+//                url,
+//                HttpMethod.GET,
+//                entity,
+//                Group.class
+//        ).getBody();
+        ResponseEntity<Group> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
                 entity,
-                Group.class
-        ).getBody();
+                new ParameterizedTypeReference<>() {
+                }
+        );
+
+        Group group = response.getBody();
+
 
         String url2 = baseUrl + "/faculty/groups/" + ("members/" + pdfGenerateRequest.getProjectName());
         members = Objects.requireNonNull(restTemplate.exchange(

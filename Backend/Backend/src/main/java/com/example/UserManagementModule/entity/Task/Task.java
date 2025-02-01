@@ -66,4 +66,9 @@ public class Task implements Serializable {
         comment.setTask(this);
         this.comments.add(comment);
     }
+
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        comment.setTask(null);
+    }
 }

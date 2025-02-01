@@ -1,13 +1,12 @@
 package com.studentOrbit.generate_report_app.entity.Faculty;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.studentOrbit.generate_report_app.entity.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.studentOrbit.generate_report_app.entity.Batches.Batch;
 import com.studentOrbit.generate_report_app.entity.Comment.Comment;
 import com.studentOrbit.generate_report_app.entity.Groups.Group;
+import com.studentOrbit.generate_report_app.entity.Providers;
+import com.studentOrbit.generate_report_app.entity.Role;
 import com.studentOrbit.generate_report_app.entity.Student.Student;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,8 +23,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//@Entity
-//@Table(name = "faculties")
+@Entity
+@Table(name = "faculties")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -45,7 +44,6 @@ public class Faculty implements UserDetails, Serializable {
     @Column(nullable = false)
     private String password;
 
-//    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -54,35 +52,33 @@ public class Faculty implements UserDetails, Serializable {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
 
-    @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
-//    @JsonManagedReference
+    @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnore
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnore
-    private List<Student> students;
+    private List<Student> students = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Providers providers = Providers.SELF;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JoinTable(
             name = "faculty_role",
-            joinColumns = @JoinColumn(name = "faculties_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "roles_id", referencedColumnName = "id")
+            joinColumns = @JoinColumn(name = "faculties_id"),
+            inverseJoinColumns = @JoinColumn(name = "roles_id")
     )
-    @JsonIgnore
     private Set<Role> roles = new HashSet<>();
 
-    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
-    @JsonManagedReference
-    private List<Group> groups;
-
-    @OneToMany(mappedBy = "assignedFaculty", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mentor", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JsonIgnore
-    private List<Batch> batches;
+    private List<Group> groups = new ArrayList<>();
+
+    @OneToMany(mappedBy = "assignedFaculty", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch  = FetchType.EAGER)
+    @JsonIgnore
+    private List<Batch> batches = new ArrayList<>();
 
     @CreatedDate
     @Column(updatable = false)
@@ -92,8 +88,43 @@ public class Faculty implements UserDetails, Serializable {
     private LocalDateTime updatedAt;
 
     public void addComment(Comment comment) {
+        comments.add(comment);
         comment.setFaculty(this);
-        this.comments.add(comment);
+    }
+
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        comment.setFaculty(null);
+    }
+
+    public void addStudent(Student student) {
+        students.add(student);
+        student.setMentor(this);
+    }
+
+    public void removeStudent(Student student) {
+        students.remove(student);
+        student.setMentor(null);
+    }
+
+    public void addGroup(Group group) {
+        groups.add(group);
+        group.setMentor(this);
+    }
+
+    public void removeGroup(Group group) {
+        groups.remove(group);
+        group.setMentor(null);
+    }
+
+    public void addBatch(Batch batch) {
+        batches.add(batch);
+        batch.setAssignedFaculty(this);
+    }
+
+    public void removeBatch(Batch batch) {
+        batches.remove(batch);
+        batch.setAssignedFaculty(null);
     }
 
     @Override
@@ -102,8 +133,6 @@ public class Faculty implements UserDetails, Serializable {
                 .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
                 .collect(Collectors.toList());
     }
-
-
 
     @Override
     public boolean isAccountNonExpired() {
@@ -137,15 +166,4 @@ public class Faculty implements UserDetails, Serializable {
     public int hashCode() {
         return Objects.hash(id);
     }
-
-    public void addGroup(Group group) {
-        group.setMentor(this);
-        this.groups.add(group);
-    }
-
-    public void addBatch(Batch batch) {
-        batch.setAssignedFaculty(this);
-        this.batches.add(batch);
-    }
 }
-

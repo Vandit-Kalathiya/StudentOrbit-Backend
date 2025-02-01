@@ -1,10 +1,9 @@
 package com.studentOrbit.generate_report_app.entity.Student;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.studentOrbit.generate_report_app.entity.Faculty.Faculty;
 import com.studentOrbit.generate_report_app.entity.Providers;
 import com.studentOrbit.generate_report_app.entity.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,8 +23,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-//@Entity
-//@Table(name = "students")
+@Entity
+@Table(name = "students")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -58,7 +57,7 @@ public class Student implements UserDetails, Serializable {
     @Column(nullable = false)
     private Providers providers = Providers.SELF;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",
             joinColumns = @JoinColumn(name = "students_id", referencedColumnName = "id"),
@@ -70,7 +69,7 @@ public class Student implements UserDetails, Serializable {
 
     private String linkedInUrl;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "student_skills",
             joinColumns = @JoinColumn(name = "student_id"),
@@ -78,8 +77,7 @@ public class Student implements UserDetails, Serializable {
     )
     private Set<Skills> skills;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JsonBackReference
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     private Faculty mentor;
 
     @CreatedDate

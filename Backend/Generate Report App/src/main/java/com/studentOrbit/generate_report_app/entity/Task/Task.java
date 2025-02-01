@@ -1,14 +1,16 @@
 package com.studentOrbit.generate_report_app.entity.Task;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.studentOrbit.generate_report_app.entity.Comment.Comment;
 import com.studentOrbit.generate_report_app.entity.Student.Student;
 import com.studentOrbit.generate_report_app.entity.Weeks.Week;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -16,8 +18,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-//@Entity
-//@Table(name = "tasks")
+@Entity
+@Table(name = "tasks")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,8 +41,10 @@ public class Task implements Serializable {
     )
     private List<Student> assignee;
 
-    @ManyToOne()
+    @JsonIgnoreProperties("tasks")
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "week_id")
+    @ToString.Exclude
     @JsonBackReference
     private Week week;
 
@@ -60,5 +64,10 @@ public class Task implements Serializable {
     public void addComment(Comment comment) {
         comment.setTask(this);
         this.comments.add(comment);
+    }
+
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        comment.setTask(null);
     }
 }

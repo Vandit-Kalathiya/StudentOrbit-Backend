@@ -3,7 +3,6 @@ package com.example.UserManagementModule.controller.Comment;
 import com.example.UserManagementModule.dto.Comment.CommentRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.service.Comment.CommentService;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,5 +25,10 @@ public class CommentController {
     @GetMapping("/{id}")
     public ResponseEntity<Comment> getCommentById(@PathVariable("id") String id) {
         return ResponseEntity.ok(commentService.getCommentById(id));
+    }
+
+    @DeleteMapping("/{commentId}/{taskId}")
+    public ResponseEntity<String> removeComment(@PathVariable String commentId, @PathVariable String taskId ){
+        return ResponseEntity.ok(commentService.deleteCommentById(commentId, taskId));
     }
 }
