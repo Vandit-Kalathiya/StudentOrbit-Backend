@@ -1,10 +1,14 @@
 package com.example.UserManagementModule.service.Tasks;
 
+import com.example.UserManagementModule.dto.Task.CompleteTaskRequest;
+import com.example.UserManagementModule.dto.Task.CompleteTaskRubricRequest;
 import com.example.UserManagementModule.dto.Task.TaskRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Groups.Group;
+import com.example.UserManagementModule.entity.Task.Rubrics;
 import com.example.UserManagementModule.entity.Task.Task;
 import com.example.UserManagementModule.entity.Weeks.Week;
+import com.example.UserManagementModule.repository.Task.RubricsRepository;
 import com.example.UserManagementModule.repository.Task.TaskRepository;
 import com.example.UserManagementModule.repository.Week.WeekRepository;
 import com.example.UserManagementModule.service.Group.FacultyGroupService;
@@ -18,6 +22,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -25,11 +31,13 @@ public class TaskService {
     private final FacultyGroupService facultyGroupService;
     private final WeekRepository weekRepository;
     private final TaskRepository taskRepository;
+    private final RubricsRepository rubricsRepository;
 
-    public TaskService(FacultyGroupService facultyGroupService, WeekRepository weekRepository, TaskRepository taskRepository) {
+    public TaskService(FacultyGroupService facultyGroupService, WeekRepository weekRepository, TaskRepository taskRepository, RubricsRepository rubricsRepository) {
         this.facultyGroupService = facultyGroupService;
         this.weekRepository = weekRepository;
         this.taskRepository = taskRepository;
+        this.rubricsRepository = rubricsRepository;
     }
 
     @CachePut(value = "tasks", key = "#weekNo + '_' + #groupId")
@@ -57,11 +65,11 @@ public class TaskService {
         return savedTask;
     }
 
-    @Cacheable(value = "commentsOfTask",key = "#id")
+    @Cacheable(value = "commentsOfTask", key = "#id")
     @CacheEvict(value = "commentsOfTask", allEntries = true)
-    public List<Comment> getCommentsOfTask(String id){
+    public List<Comment> getCommentsOfTask(String id) {
         List<Comment> comments = taskRepository.findById(id).get().getComments();
-        if(comments.isEmpty()){
+        if (comments.isEmpty()) {
             return new ArrayList<>();
         }
         return comments;
@@ -83,12 +91,39 @@ public class TaskService {
         Task task = taskRepository.findById(id).get();
         System.out.println(status);
         task.setStatus(status);
-        if(status.equals("IN_REVIEW")) {
+        if (status.equals("IN_REVIEW")) {
             task.setSubmittedDate(LocalDateTime.now());
         }
-        if(status.equals("COMPLETED")) {
+        if (status.equals("COMPLETED")) {
             task.setCompletedDate(LocalDateTime.now());
         }
+        return taskRepository.save(task);
+    }
+
+    public Task changeTaskStatusToCompleted(String id, String status, CompleteTaskRequest completeTaskRequest) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+
+        task.setStatus(status);
+        task.setCompletedDate(LocalDateTime.now());
+
+        int scoredMarks = completeTaskRequest.getGrades().stream()
+                .mapToInt(CompleteTaskRubricRequest::getScore)
+                .sum();
+
+        List<Rubrics> rubricsList = completeTaskRequest.getGrades().stream()
+                .map(g -> {
+                    Rubrics rubrics = new Rubrics();
+                    rubrics.setRubricName(g.getName());
+                    rubrics.setRubricScore(g.getScore());
+                    rubrics.setTask(task);
+                    return rubricsRepository.save(rubrics); // Save each rubric
+                })
+                .toList();
+
+        task.getRubrics().addAll(rubricsList);
+        task.setScoredMarks(scoredMarks);
+
         return taskRepository.save(task);
     }
 
@@ -96,7 +131,7 @@ public class TaskService {
         return taskRepository.findCompletedTasksByStudent(username);
     }
 
-    public List<Task> findTasksByStudentId(String username){
+    public List<Task> findTasksByStudentId(String username) {
         return taskRepository.getTasksByStudentId(username);
     }
 
@@ -108,7 +143,7 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public String deleteTask(String taskId, String groupId, Integer weekNo){
+    public String deleteTask(String taskId, String groupId, Integer weekNo) {
         Group group = facultyGroupService.getGroupById(groupId).orElseThrow(() ->
                 new RuntimeException("Group not found with ID: " + groupId));
 

@@ -25,13 +25,13 @@ public class TechnologyService {
     private FacultyGroupService facultyGroupService;
 
     public Technology add(String name, String groupId) {
-        name = name.substring(0,1).toUpperCase() + name.substring(1,name.length()-1).toLowerCase();
-        System.out.println(name);
+        name = name.substring(1,name.length()-1);
+        System. out.println(name);
         Optional<Group> optionalGroup = groupRepository.findById(groupId);
         if(optionalGroup.isPresent()) {
             Group group  = optionalGroup.get();
             List<Technology> technologies = group.getTechnologies();
-            Technology technology = technologyRepository.save(Technology.builder().name(name.trim()).build());
+            Technology technology = technologyRepository.save(Technology.builder().name(name).build());
             technologies.add(technology);
             facultyGroupService.saveGroup(group);
             return technology;

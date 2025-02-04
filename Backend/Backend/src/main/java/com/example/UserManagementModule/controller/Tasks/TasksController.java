@@ -1,6 +1,7 @@
 package com.example.UserManagementModule.controller.Tasks;
 
 import com.example.UserManagementModule.Exceptions.TaskAssignmentException;
+import com.example.UserManagementModule.dto.Task.CompleteTaskRequest;
 import com.example.UserManagementModule.dto.Task.TaskRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Student.Student;
@@ -45,6 +46,12 @@ public class TasksController {
     @PostMapping("/{id}/{status}")
     public ResponseEntity<Task> changeTaskStatus(@PathVariable String id, @PathVariable String status) {
         return ResponseEntity.ok(taskService.changeTaskStatus(id, status));
+    }
+
+    @PostMapping("/{id}/c/{status}")
+    public ResponseEntity<Task> changeTaskStatusToComplete(@PathVariable String id, @PathVariable String status, @RequestBody CompleteTaskRequest completeTaskRequest) {
+        System.out.println(completeTaskRequest);
+        return ResponseEntity.ok(taskService.changeTaskStatusToCompleted(id,status,completeTaskRequest));
     }
 
     @PostMapping("/{id}")

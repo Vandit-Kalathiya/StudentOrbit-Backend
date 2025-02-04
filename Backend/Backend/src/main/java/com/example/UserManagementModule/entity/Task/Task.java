@@ -17,6 +17,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -36,9 +37,9 @@ public class Task implements Serializable {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-           name = "task_assignee",
-           joinColumns = @JoinColumn(name = "task_id"),
-          inverseJoinColumns = @JoinColumn(name = "student_id")
+            name = "task_assignee",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
     )
     private List<Student> assignee;
 
@@ -49,7 +50,7 @@ public class Task implements Serializable {
 //    @JsonBackReference
     private Week week;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
 //    @JsonManagedReference
     @JsonIgnore
     private List<Comment> comments;
@@ -61,6 +62,12 @@ public class Task implements Serializable {
     private LocalDateTime completedDate;
 
     private LocalTime time;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Rubrics> rubrics = new ArrayList<>();
+
+    private Integer scoredMarks = 0;
 
     public void addComment(Comment comment) {
         comment.setTask(this);

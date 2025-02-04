@@ -21,6 +21,7 @@ public class TechnologyController {
 
     @PostMapping("/add/{groupId}")
     public ResponseEntity<Technology> addTechnology(@RequestBody String name, @PathVariable String groupId) {
+        System.out.println(name);
         return new ResponseEntity<>(technologyService.add(name, groupId), HttpStatus.CREATED);
     }
 
