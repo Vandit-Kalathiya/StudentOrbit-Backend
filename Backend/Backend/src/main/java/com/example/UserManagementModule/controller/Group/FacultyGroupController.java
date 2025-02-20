@@ -2,6 +2,7 @@ package com.example.UserManagementModule.controller.Group;
 
 import com.example.UserManagementModule.dto.Group.GroupRequest;
 import com.example.UserManagementModule.entity.Batches.Batch;
+import com.example.UserManagementModule.entity.Chat.Room;
 import com.example.UserManagementModule.entity.Groups.Group;
 import com.example.UserManagementModule.entity.Groups.Technology;
 import com.example.UserManagementModule.entity.Student.Student;
@@ -11,10 +12,9 @@ import com.example.UserManagementModule.service.Batch.BatchService;
 import com.example.UserManagementModule.service.Group.FacultyGroupService;
 import com.example.UserManagementModule.service.Student.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,8 +34,12 @@ public class FacultyGroupController {
 
     @Autowired
     private BatchService batchService;
+
     @Autowired
     private TechnologyRepository technologyRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @GetMapping("/allGroups")
     public ResponseEntity<List<Group>> getAllGroups() {
@@ -59,23 +63,33 @@ public class FacultyGroupController {
 
     @PostMapping("/create")
     public ResponseEntity<Group> createGroup(@RequestBody GroupRequest groupRequest) {
-        if(groupService.getGroupByName(groupRequest.getGroupName()).isPresent()) {
+        if (groupService.getGroupByName(groupRequest.getGroupName()).isPresent()) {
             throw new RuntimeException("Group already exists with name : " + groupRequest.getGroupName());
         }
         Group group = new Group();
         group.setGroupName(groupRequest.getGroupName());
         group.setGroupDescription(groupRequest.getDescription());
-        int sem = Integer.parseInt(groupRequest.getBatchName().substring(0,1));
-        int year = sem%2==0?(Integer) (sem/2):(Integer) (sem/2)+1;
-        group.setUniqueGroupId(groupService.generateUniqueID(groupRequest.getStudents().stream().toList().getFirst(),year,sem, groupRequest.getBatchName().substring(1)));
+        int sem = Integer.parseInt(groupRequest.getBatchName().substring(0, 1));
+        int year = sem % 2 == 0 ? (Integer) (sem / 2) : (Integer) (sem / 2) + 1;
+
+        String uniqueGroupId = groupService.generateUniqueID(groupRequest.getStudents().stream().toList().getFirst(), year, sem, groupRequest.getBatchName().substring(1));
+        group.setUniqueGroupId(uniqueGroupId);
+
+        String url = "http://localhost:1821/api/v1/rooms/";
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String roomId = uniqueGroupId;
+//        HttpEntity<String> entity = new HttpEntity<>(roomId, headers);
+        ResponseEntity<Room> room = restTemplate.exchange(url + roomId, HttpMethod.POST, null, Room.class);
 
         List<Technology> technologies = new ArrayList<>();
 
         groupRequest.getTechnologies().forEach(tech -> {
             Optional<Technology> technology = technologyRepository.findByName(tech.toLowerCase());
-            if(technology.isPresent()){
+            if (technology.isPresent()) {
                 technologies.add(technology.get());
-            }else{
+            } else {
                 Technology newTechnology = Technology.builder().name(tech.toLowerCase()).build();
                 Technology newTech = technologyRepository.save(newTechnology);
                 technologies.add(newTech);
@@ -96,7 +110,7 @@ public class FacultyGroupController {
         group.setGroupLeader(groupRequest.getGroupLeaderId().toUpperCase());
         group.setCreatedAt(LocalDateTime.now());
 
-        Batch batch = batchService.getBatchByBatchNameAndSemester(groupRequest.getBatchName().substring(1),Integer.parseInt(groupRequest.getBatchName().substring(0,1))).get();
+        Batch batch = batchService.getBatchByBatchNameAndSemester(groupRequest.getBatchName().substring(1), Integer.parseInt(groupRequest.getBatchName().substring(0, 1))).get();
         group.setBatchName(groupRequest.getBatchName());
 
         List<Week> weeks = new ArrayList<>();
@@ -159,10 +173,10 @@ public class FacultyGroupController {
 
     @PostMapping("/add/member/{id}")
     public ResponseEntity<?> addMember(@PathVariable String id, @RequestBody List<String> memberUsername) {
-        try{
-            return ResponseEntity.ok(groupService.addMember(id,memberUsername));
+        try {
+            return ResponseEntity.ok(groupService.addMember(id, memberUsername));
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

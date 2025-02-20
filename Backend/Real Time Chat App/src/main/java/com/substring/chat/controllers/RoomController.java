@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/rooms")
-@CrossOrigin("http://localhost:5174")
+@CrossOrigin("http://localhost:5173")
 public class RoomController {
 
     private RoomRepository roomRepository;
@@ -26,8 +26,8 @@ public class RoomController {
     }
 
     //create room
-    @PostMapping
-    public ResponseEntity<?> createRoom(@RequestBody String roomId) {
+    @PostMapping("{roomId}")
+    public ResponseEntity<?> createRoom(@PathVariable String roomId) {
 
         if (roomRepository.findByRoomId(roomId) != null) {
             //room is already there
@@ -47,7 +47,6 @@ public class RoomController {
     public ResponseEntity<?> joinRoom(
             @PathVariable String roomId
     ) {
-
         Room room = roomRepository.findByRoomId(roomId);
         if (room == null) {
             return ResponseEntity.badRequest()

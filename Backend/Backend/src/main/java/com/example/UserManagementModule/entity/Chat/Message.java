@@ -1,4 +1,4 @@
-package com.substring.chat.entities;
+package com.example.UserManagementModule.entity.Chat;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Setter
 public class Message {
 
-    private String id;
     private String sender;
     private String content;
     private LocalDateTime timeStamp;

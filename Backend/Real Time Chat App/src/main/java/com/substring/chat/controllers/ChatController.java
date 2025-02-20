@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Controller
 @CrossOrigin("http://localhost:5173")
 public class ChatController {
-
 
     private RoomRepository roomRepository;
 
@@ -35,6 +35,7 @@ public class ChatController {
 
         Room room = roomRepository.findByRoomId(request.getRoomId());
         Message message = new Message();
+        message.setId(UUID.randomUUID().toString());
         message.setContent(request.getContent());
         message.setSender(request.getSender());
         message.setTimeStamp(LocalDateTime.now());

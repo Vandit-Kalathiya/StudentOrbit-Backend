@@ -2,11 +2,11 @@ package com.example.UserManagementModule.entity.Groups;
 
 import com.example.UserManagementModule.Helper.TaskStatus;
 import com.example.UserManagementModule.entity.Batches.Batch;
+import com.example.UserManagementModule.entity.Chat.Message;
 import com.example.UserManagementModule.entity.Faculty.Faculty;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Weeks.Week;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -76,6 +76,10 @@ public class Group implements Serializable {
     private LocalDateTime createdAt;
 
     private String startDate;
+
+    // Chat
+//    @OneToMany()
+//    List<Message> messages = new ArrayList<String>();
 
     public void addWeek(Week week) {
         weeks.add(week);
