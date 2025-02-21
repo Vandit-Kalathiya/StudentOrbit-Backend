@@ -417,6 +417,137 @@ public class PdfService {
             document.add(taskCard);
         }
 
+//        private static void add(Document document, TaskData task, boolean isLate) {
+//            Table taskCard = new Table(1)
+//                    .setWidth(UnitValue.createPercentValue(100))
+//                    .setMarginTop(10)
+//                    .setBorder(Border.NO_BORDER)
+//                    .setBorderLeft(new SolidBorder(
+//                            isLate ? new DeviceRgb(255, 0, 0) : new DeviceRgb(44, 62, 80),
+//                            2.5f
+//                    ))
+//                    .setMarginLeft(5)
+//                    .setMarginRight(5)
+//                    .setBackgroundColor(Theme.BACKGROUND);
+//
+//            // Task Header
+//            Cell headerCell = new Cell()
+//                    .setBorder(Border.NO_BORDER)
+//                    .setPadding(10);
+//
+//            // Task Title and Status
+//            Table titleRow = new Table(UnitValue.createPercentArray(new float[]{7, 3}));
+//
+//            Cell titleCell = new Cell()
+//                    .setBorder(Border.NO_BORDER)
+//                    .add(new Paragraph(task.getTaskName())
+//                            .setBold()
+//                            .setFontSize(14)
+//                            .setFontColor(Theme.TEXT_PRIMARY));
+//
+//            Cell statusCell = new Cell()
+//                    .setBorder(Border.NO_BORDER)
+//                    .add(createStatusBadge(task.getStatus()));
+//
+//            titleRow.addCell(titleCell);
+//            titleRow.addCell(statusCell);
+//            headerCell.add(titleRow);
+//
+//            // Due Date
+//            headerCell.add(new Paragraph("Due: " + formatDate(task.getDueDate()))
+//                    .setFontSize(12)
+//                    .setFontColor(Theme.TEXT_SECONDARY)
+//                    .setMarginTop(5));
+//
+//            // Submission info if completed
+//            if (task.getSubmissionCount() > 0) {
+//                headerCell.add(new Paragraph(task.getSubmissionCount() + " submissions")
+//                        .setFontSize(12)
+//                        .setFontColor(Theme.TEXT_SECONDARY)
+//                        .setMarginTop(5));
+//            }
+//
+//            taskCard.addCell(headerCell);
+//
+//            // Latest Submission Section
+//            if (task.getSubmissionDate() != null) {
+//                Cell submissionCell = new Cell()
+//                        .setBorder(Border.NO_BORDER)
+//                        .setPadding(10)
+//                        .setPaddingTop(0);
+//
+//                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy, h:mm:ss a");
+//                submissionCell.add(new Paragraph("Submitted: " + task.getSubmissionDate().format(formatter))
+//                        .setFontSize(12)
+//                        .setFontColor(Theme.TEXT_PRIMARY)
+//                        .setMarginBottom(10));
+//
+//                // Description
+//                if (task.getDescription() != null && !task.getDescription().isEmpty()) {
+//                    submissionCell.add(new Paragraph("Description")
+//                            .setBold()
+//                            .setFontSize(12)
+//                            .setFontColor(Theme.TEXT_PRIMARY)
+//                            .setMarginBottom(5));
+//                    submissionCell.add(new Paragraph(task.getDescription())
+//                            .setFontSize(12)
+//                            .setFontColor(Theme.TEXT_PRIMARY)
+//                            .setMarginBottom(10));
+//                }
+//
+//                // Files
+//                if (task.getFiles() != null && !task.getFiles().isEmpty()) {
+//                    submissionCell.add(new Paragraph("Files")
+//                            .setBold()
+//                            .setFontSize(12)
+//                            .setFontColor(Theme.TEXT_PRIMARY)
+//                            .setMarginBottom(5));
+//
+//                    for (FileData file : task.getFiles()) {
+//                        Table fileRow = new Table(UnitValue.createPercentArray(new float[]{7, 2, 1}))
+//                                .setWidth(UnitValue.createPercentValue(100));
+//
+//                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
+//                                .add(new Paragraph(file.getFileName())
+//                                        .setFontSize(12)
+//                                        .setFontColor(Theme.TEXT_PRIMARY)));
+//
+//                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
+//                                .add(new Paragraph(file.getFileSize())
+//                                        .setFontSize(12)
+//                                        .setFontColor(Theme.TEXT_SECONDARY)));
+//
+//                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
+//                                .add(new Paragraph("Download")
+//                                        .setFontColor(new DeviceRgb(59, 130, 246))
+//                                        .setFontSize(12)));
+//
+//                        submissionCell.add(fileRow);
+//                    }
+//                }
+//
+//                // Related Links
+//                if (task.getRelatedLinks() != null && !task.getRelatedLinks().isEmpty()) {
+//                    submissionCell.add(new Paragraph("Related Links")
+//                            .setBold()
+//                            .setFontSize(12)
+//                            .setFontColor(Theme.TEXT_PRIMARY)
+//                            .setMarginTop(10)
+//                            .setMarginBottom(5));
+//
+//                    for (LinkData link : task.getRelatedLinks()) {
+//                        submissionCell.add(new Paragraph(link.getTitle())
+//                                .setFontColor(new DeviceRgb(59, 130, 246))
+//                                .setFontSize(12)
+//                                .setMarginBottom(5));
+//                    }
+//                }
+//
+//                taskCard.addCell(submissionCell);
+//            }
+//
+//            document.add(taskCard);
+//        }
 
         private static Table createStatusBadge(String status) {
             DeviceRgb[] colors = getStatusColors(status);
