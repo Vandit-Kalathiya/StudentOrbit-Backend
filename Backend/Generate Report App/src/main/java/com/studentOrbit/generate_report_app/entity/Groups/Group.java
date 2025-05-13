@@ -76,6 +76,10 @@ public class Group implements Serializable {
 
     private String startDate;
 
+    // Chat
+//    @OneToMany()
+//    List<Message> messages = new ArrayList<String>();
+
     public void addWeek(Week week) {
         weeks.add(week);
         week.setGroup(this);

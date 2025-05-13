@@ -7,6 +7,7 @@ import com.example.UserManagementModule.entity.Faculty.Faculty;
 import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Weeks.Week;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

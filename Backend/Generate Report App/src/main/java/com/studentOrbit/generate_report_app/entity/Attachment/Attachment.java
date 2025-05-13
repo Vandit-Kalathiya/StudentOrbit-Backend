@@ -1,4 +1,4 @@
-package com.example.spring.boot.file.upload.Entity;
+package com.studentOrbit.generate_report_app.entity.Attachment;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-@Entity
-@Table(name = "attachment")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -45,4 +43,5 @@ public class Attachment {
 
     private LocalTime createTime;
 }
+
 

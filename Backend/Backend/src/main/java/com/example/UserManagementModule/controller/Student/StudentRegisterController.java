@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/auth/student")
 public class StudentRegisterController {
 
-    private StudentService studentService;
+    private final StudentService studentService;
 
     @Autowired
     public StudentRegisterController(StudentService studentService) {

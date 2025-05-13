@@ -28,7 +28,7 @@ public class Week implements Serializable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "student_group_id")
-    @JsonBackReference // To avoid infinite recursion when serializing group
+    @JsonBackReference
     private Group group;
 
     @OneToMany(mappedBy = "week", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)

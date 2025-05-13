@@ -9,7 +9,6 @@ import com.example.UserManagementModule.repository.Skills.SkillsRepository;
 import com.example.UserManagementModule.service.Student.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -90,7 +89,7 @@ public class StudentController {
     }
 
     @PutMapping("/profile/{username}")
-    public ResponseEntity<Student> updateStudentProfile(@PathVariable String username, @RequestPart ProfileUpdateRequest profileUpdateRequest, @RequestPart MultipartFile image) throws IOException {
+    public ResponseEntity<Student> updateStudentProfile(@PathVariable String username, @RequestPart(required = false) ProfileUpdateRequest profileUpdateRequest, @RequestPart(required = false) MultipartFile image) throws IOException {
         return ResponseEntity.ok(studentService.updateStudentProfile(username,profileUpdateRequest,image));
     }
 
@@ -103,5 +102,21 @@ public class StudentController {
     public ResponseEntity<Student> updateStudent(@PathVariable String id, @RequestBody StudentRequest studentRequest) {
         return ResponseEntity.ok(studentService.updateStudent(id, studentRequest));
     }
+
+    @GetMapping("/gitHubUrl/{username}")
+    public ResponseEntity<?> getGitHubUrlFromUsername(@PathVariable String username) {
+        Optional<Student> student = studentService.getStudentByUsername(username);
+
+        if (student.isPresent()) {
+            String gitHubUrl = student.get().getGitHubUrl();
+            return ResponseEntity.ok(gitHubUrl);
+        } else {
+            String errorMessage = "No student found with username: " + username;
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", errorMessage));
+        }
+    }
+
 }
 

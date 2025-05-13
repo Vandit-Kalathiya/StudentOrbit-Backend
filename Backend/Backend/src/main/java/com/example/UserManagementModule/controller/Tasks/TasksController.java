@@ -5,6 +5,7 @@ import com.example.UserManagementModule.dto.Task.CompleteTaskRequest;
 import com.example.UserManagementModule.dto.Task.TaskRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Student.Student;
+import com.example.UserManagementModule.entity.Task.Rubrics;
 import com.example.UserManagementModule.entity.Task.Task;
 import com.example.UserManagementModule.repository.Student.StudentRepository;
 import com.example.UserManagementModule.repository.Task.TaskRepository;
@@ -117,5 +118,10 @@ public class TasksController {
     @DeleteMapping("/{taskId}/{groupId}/{weekNo}")
     public ResponseEntity<String> deleteTask(@PathVariable String taskId, @PathVariable String groupId, @PathVariable Integer weekNo) {
         return ResponseEntity.ok(taskService.deleteTask(taskId, groupId, weekNo));
+    }
+
+    @GetMapping("/rubrics/{taskId}")
+    public ResponseEntity<List<Rubrics>> getRubricsOfTask(@PathVariable String taskId){
+        return ResponseEntity.ok(taskService.getTask(taskId).getRubrics());
     }
 }

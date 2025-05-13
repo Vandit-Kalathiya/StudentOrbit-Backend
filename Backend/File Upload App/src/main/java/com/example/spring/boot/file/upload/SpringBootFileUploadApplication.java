@@ -9,6 +9,7 @@ public class SpringBootFileUploadApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringBootFileUploadApplication.class, args);
+
 		Dotenv dotenv = Dotenv.configure().load();
 		dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 	}

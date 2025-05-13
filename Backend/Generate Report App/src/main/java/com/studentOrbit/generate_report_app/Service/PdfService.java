@@ -9,6 +9,7 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.action.PdfAction;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.Document;
@@ -17,6 +18,7 @@ import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.properties.*;
 import com.studentOrbit.generate_report_app.Helper.PdfGenerateRequest;
+import com.studentOrbit.generate_report_app.entity.Attachment.Attachment;
 import com.studentOrbit.generate_report_app.entity.Groups.Group;
 import com.studentOrbit.generate_report_app.entity.Student.Student;
 import com.studentOrbit.generate_report_app.entity.Task.Task;
@@ -25,10 +27,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 import lombok.Data;
@@ -88,9 +87,11 @@ public class PdfService {
 
     private static List<Student> members;
 
+    private static Map<String, List<Attachment>> allTasksAttachmentMap = new HashMap<>();
+
     // Fetching WeekData and TaskData
     public List<WeekData> fetchWeekData(PdfGenerateRequest pdfGenerateRequest, HttpServletRequest request) {
-            String type = pdfGenerateRequest.getReportType();
+        String type = pdfGenerateRequest.getReportType();
 
         List<WeekData> weekDataList = new ArrayList<>();
 
@@ -112,6 +113,7 @@ public class PdfService {
         // Set the token in the Authorization header
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
+//        headers.setContentType(MediaType.APPLICATION_JSON);
 
         // Create an HttpEntity with headers
         HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -148,7 +150,7 @@ public class PdfService {
         groupData = group;
         reportType = pdfGenerateRequest.getReportType();
 
-        if(type.equalsIgnoreCase("student")){
+        if (type.equalsIgnoreCase("student")) {
             studentId = pdfGenerateRequest.getIdentifier();
         }
 
@@ -161,7 +163,7 @@ public class PdfService {
 
             weeks.forEach(w -> w.getTasks().forEach(t -> {
                 List<String> assignees = t.getAssignee().stream().map(Student::getUsername).toList();
-                if(assignees.contains(pdfGenerateRequest.getIdentifier())) {
+                if (assignees.contains(pdfGenerateRequest.getIdentifier())) {
                     tasks.add(t);
                 }
             }));
@@ -189,6 +191,31 @@ public class PdfService {
 
         tasks.sort(Comparator.comparing(t -> t.getWeek().getWeekNumber()));
 
+//        Map<String,List<Attachment>> allTaskAttachments = new HashMap<>();
+
+        tasks.forEach(task -> {
+            String fileUrl = "http://localhost:1820/" + task.getId();
+            ResponseEntity<List<Attachment>> fileResponse = restTemplate.exchange(
+                    fileUrl,
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<List<Attachment>>() {
+                    }
+            );
+            List<Attachment> attachments = fileResponse.getBody();
+            allTasksAttachmentMap.put(task.getId(), attachments);
+        });
+
+
+        // Print allTaskAttachments
+//        allTasksAttachmentMap.forEach((taskId, attachments) -> {
+//            System.out.println("Task ID : " + taskId);
+//            attachments.forEach(attachment -> {
+//                System.out.println("Attachment Name : " + attachment.getFileName());
+//                System.out.println("Attachment URL : " + attachment.getDownloadUrl());
+//            });
+//        });
+
         Map<Integer, List<TaskData>> groupedTasks = new LinkedHashMap<>();
 
         tasks.forEach(task -> {
@@ -196,6 +223,7 @@ public class PdfService {
             task.getAssignee().forEach(assignee -> assignees.add(assignee.getUsername()));
 
             TaskData taskData = new TaskData(
+                    task.getId(),
                     task.getName(),
                     task.getDescription(),
                     assignees,
@@ -359,7 +387,7 @@ public class PdfService {
         if (dueDate == null && completionDate == null) {
             return false;
         }
-        if(completionDate == null){
+        if (completionDate == null) {
             completionDate = LocalDate.now();
         }
         return completionDate.isAfter(dueDate);
@@ -367,58 +395,8 @@ public class PdfService {
 
     // Task Card component
     private static class TaskCard {
-        private static void add(Document document, TaskData task, boolean isLate) {
-            Table taskCard = new Table(UnitValue.createPercentArray(new float[]{7, 3}))
-                    .setWidth(UnitValue.createPercentValue(100))
-                    .setMarginTop(10)
-                    .setBorder(Border.NO_BORDER)
-                    .setBorderLeft(new SolidBorder(
-                            isLate ? new DeviceRgb(255, 0, 0) : new DeviceRgb(44, 62, 80),
-                            2.5f
-                    ))
-                    .setMarginLeft(5)
-                    .setMarginRight(5)
-                    .setBackgroundColor(Theme.BACKGROUND);
-
-            // Task Details
-            Cell detailsCell = new Cell()
-                    .setBorder(Border.NO_BORDER)
-                    .setPaddingLeft(20)
-                    .setPaddingTop(6)
-                    .setPaddingBottom(3)
-                    .add(new Paragraph(task.getTaskName())
-                            .setBold()
-                            .setFontSize(13)
-                            .setFontColor(Theme.TEXT_PRIMARY)
-                            .setMarginBottom(6))
-                    .add(new Paragraph(task.getDescription())
-                            .setFontSize(10)
-                            .setFontColor(Theme.TEXT_PRIMARY)
-                            .setMarginBottom(6))
-                    .add(createInfoRow("Assignees", task.getAssignees().isEmpty() ? "Not assigned" : String.join(", ", task.getAssignees())));
-
-            // Combine Due Date and Completion Date in one row
-            String formattedDueDate = (task.getDueDate() != null) ? formatDate(task.getDueDate()) : "No due date set";
-            String formattedCompletionDate = (task.getStatus().equals("COMPLETED") && task.getCompletionDate() != null)
-                    ? formatDate(task.getCompletionDate()) : "Not completed yet";
-
-            // Add both dates in a single row
-            detailsCell.add(createInfoRow("Dates", "Due Date: " + formattedDueDate + " | Completion Date: " + formattedCompletionDate));
-
-            // Status Badge
-            Cell statusCell = new Cell()
-                    .setBorder(null)
-                    .setVerticalAlignment(VerticalAlignment.TOP)
-                    .add(createStatusBadge(task.getStatus()));
-
-            taskCard.addCell(detailsCell);
-            taskCard.addCell(statusCell);
-
-            document.add(taskCard);
-        }
-
 //        private static void add(Document document, TaskData task, boolean isLate) {
-//            Table taskCard = new Table(1)
+//            Table taskCard = new Table(UnitValue.createPercentArray(new float[]{7, 3}))
 //                    .setWidth(UnitValue.createPercentValue(100))
 //                    .setMarginTop(10)
 //                    .setBorder(Border.NO_BORDER)
@@ -430,124 +408,193 @@ public class PdfService {
 //                    .setMarginRight(5)
 //                    .setBackgroundColor(Theme.BACKGROUND);
 //
-//            // Task Header
-//            Cell headerCell = new Cell()
+//            // Task Details
+//            Cell detailsCell = new Cell()
 //                    .setBorder(Border.NO_BORDER)
-//                    .setPadding(10);
-//
-//            // Task Title and Status
-//            Table titleRow = new Table(UnitValue.createPercentArray(new float[]{7, 3}));
-//
-//            Cell titleCell = new Cell()
-//                    .setBorder(Border.NO_BORDER)
+//                    .setPaddingLeft(20)
+//                    .setPaddingTop(6)
+//                    .setPaddingBottom(3)
 //                    .add(new Paragraph(task.getTaskName())
 //                            .setBold()
-//                            .setFontSize(14)
-//                            .setFontColor(Theme.TEXT_PRIMARY));
+//                            .setFontSize(13)
+//                            .setFontColor(Theme.TEXT_PRIMARY)
+//                            .setMarginBottom(6))
+//                    .add(new Paragraph(task.getDescription())
+//                            .setFontSize(10)
+//                            .setFontColor(Theme.TEXT_PRIMARY)
+//                            .setMarginBottom(6))
+//                    .add(createInfoRow("Assignees", task.getAssignees().isEmpty() ? "Not assigned" : String.join(", ", task.getAssignees())));
 //
+//            // Combine Due Date and Completion Date in one row
+//            String formattedDueDate = (task.getDueDate() != null) ? formatDate(task.getDueDate()) : "No due date set";
+//            String formattedCompletionDate = (task.getStatus().equals("COMPLETED") && task.getCompletionDate() != null)
+//                    ? formatDate(task.getCompletionDate()) : "Not completed yet";
+//
+//            // Add both dates in a single row
+//            detailsCell.add(createInfoRow("Dates", "Due Date: " + formattedDueDate + " | Completion Date: " + formattedCompletionDate));
+//
+//            // Status Badge
 //            Cell statusCell = new Cell()
-//                    .setBorder(Border.NO_BORDER)
+//                    .setBorder(null)
+//                    .setVerticalAlignment(VerticalAlignment.TOP)
 //                    .add(createStatusBadge(task.getStatus()));
 //
-//            titleRow.addCell(titleCell);
-//            titleRow.addCell(statusCell);
-//            headerCell.add(titleRow);
-//
-//            // Due Date
-//            headerCell.add(new Paragraph("Due: " + formatDate(task.getDueDate()))
-//                    .setFontSize(12)
-//                    .setFontColor(Theme.TEXT_SECONDARY)
-//                    .setMarginTop(5));
-//
-//            // Submission info if completed
-//            if (task.getSubmissionCount() > 0) {
-//                headerCell.add(new Paragraph(task.getSubmissionCount() + " submissions")
-//                        .setFontSize(12)
-//                        .setFontColor(Theme.TEXT_SECONDARY)
-//                        .setMarginTop(5));
-//            }
-//
-//            taskCard.addCell(headerCell);
-//
-//            // Latest Submission Section
-//            if (task.getSubmissionDate() != null) {
-//                Cell submissionCell = new Cell()
-//                        .setBorder(Border.NO_BORDER)
-//                        .setPadding(10)
-//                        .setPaddingTop(0);
-//
-//                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy, h:mm:ss a");
-//                submissionCell.add(new Paragraph("Submitted: " + task.getSubmissionDate().format(formatter))
-//                        .setFontSize(12)
-//                        .setFontColor(Theme.TEXT_PRIMARY)
-//                        .setMarginBottom(10));
-//
-//                // Description
-//                if (task.getDescription() != null && !task.getDescription().isEmpty()) {
-//                    submissionCell.add(new Paragraph("Description")
-//                            .setBold()
-//                            .setFontSize(12)
-//                            .setFontColor(Theme.TEXT_PRIMARY)
-//                            .setMarginBottom(5));
-//                    submissionCell.add(new Paragraph(task.getDescription())
-//                            .setFontSize(12)
-//                            .setFontColor(Theme.TEXT_PRIMARY)
-//                            .setMarginBottom(10));
-//                }
-//
-//                // Files
-//                if (task.getFiles() != null && !task.getFiles().isEmpty()) {
-//                    submissionCell.add(new Paragraph("Files")
-//                            .setBold()
-//                            .setFontSize(12)
-//                            .setFontColor(Theme.TEXT_PRIMARY)
-//                            .setMarginBottom(5));
-//
-//                    for (FileData file : task.getFiles()) {
-//                        Table fileRow = new Table(UnitValue.createPercentArray(new float[]{7, 2, 1}))
-//                                .setWidth(UnitValue.createPercentValue(100));
-//
-//                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
-//                                .add(new Paragraph(file.getFileName())
-//                                        .setFontSize(12)
-//                                        .setFontColor(Theme.TEXT_PRIMARY)));
-//
-//                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
-//                                .add(new Paragraph(file.getFileSize())
-//                                        .setFontSize(12)
-//                                        .setFontColor(Theme.TEXT_SECONDARY)));
-//
-//                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
-//                                .add(new Paragraph("Download")
-//                                        .setFontColor(new DeviceRgb(59, 130, 246))
-//                                        .setFontSize(12)));
-//
-//                        submissionCell.add(fileRow);
-//                    }
-//                }
-//
-//                // Related Links
-//                if (task.getRelatedLinks() != null && !task.getRelatedLinks().isEmpty()) {
-//                    submissionCell.add(new Paragraph("Related Links")
-//                            .setBold()
-//                            .setFontSize(12)
-//                            .setFontColor(Theme.TEXT_PRIMARY)
-//                            .setMarginTop(10)
-//                            .setMarginBottom(5));
-//
-//                    for (LinkData link : task.getRelatedLinks()) {
-//                        submissionCell.add(new Paragraph(link.getTitle())
-//                                .setFontColor(new DeviceRgb(59, 130, 246))
-//                                .setFontSize(12)
-//                                .setMarginBottom(5));
-//                    }
-//                }
-//
-//                taskCard.addCell(submissionCell);
-//            }
+//            taskCard.addCell(detailsCell);
+//            taskCard.addCell(statusCell);
 //
 //            document.add(taskCard);
 //        }
+
+        private static void add(Document document, TaskData task, boolean isLate) {
+            Table taskCard = new Table(1)
+                    .setWidth(UnitValue.createPercentValue(100))
+                    .setMarginTop(10)
+                    .setBorder(Border.NO_BORDER)
+                    .setBorderLeft(new SolidBorder(
+                            isLate ? new DeviceRgb(255, 0, 0) : new DeviceRgb(44, 62, 80),
+                            2.5f
+                    ))
+                    .setMarginLeft(5)
+                    .setMarginRight(5)
+                    .setBackgroundColor(Theme.BACKGROUND);
+
+            // Task Header
+            Cell headerCell = new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .setPadding(10);
+
+            // Task Title and Status
+            Table titleRow = new Table(UnitValue.createPercentArray(new float[]{7, 3}));
+
+            Cell titleCell = new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .add(new Paragraph(task.getTaskName())
+                            .setBold()
+                            .setFontSize(14)
+                            .setFontColor(Theme.TEXT_PRIMARY));
+
+            Cell statusCell = new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .add(createStatusBadge(task.getStatus()));
+
+            titleRow.addCell(titleCell);
+            titleRow.addCell(statusCell);
+            headerCell.add(titleRow);
+
+            // Due Date
+            headerCell.add(new Paragraph("Due: " + formatDate(task.getDueDate()))
+                    .setFontSize(12)
+                    .setFontColor(Theme.TEXT_SECONDARY)
+                    .setMarginTop(5));
+
+
+
+            // Submission info if completed
+            if (!allTasksAttachmentMap.get(task.getTaskId()).isEmpty()) {
+                headerCell.add(new Paragraph(allTasksAttachmentMap.get(task.getTaskId()).size() + " submissions")
+                        .setFontSize(12)
+                        .setFontColor(Theme.TEXT_SECONDARY)
+                        .setMarginTop(5));
+            }
+
+            taskCard.addCell(headerCell);
+
+            // Latest Submission Section
+            if (task.getCompletionDate() != null) {
+                Cell submissionCell = new Cell()
+                        .setBorder(Border.NO_BORDER)
+                        .setPadding(10)
+                        .setPaddingTop(0);
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy");
+                submissionCell.add(new Paragraph("Submitted: " + task.getCompletionDate().format(formatter))
+                        .setFontSize(12)
+                        .setFontColor(Theme.TEXT_PRIMARY)
+                        .setMarginBottom(10));
+
+                // Description
+                if (task.getDescription() != null && !task.getDescription().isEmpty()) {
+                    submissionCell.add(new Paragraph("Description")
+                            .setBold()
+                            .setFontSize(12)
+                            .setFontColor(Theme.TEXT_PRIMARY)
+                            .setMarginBottom(5));
+                    submissionCell.add(new Paragraph(task.getDescription())
+                            .setFontSize(12)
+                            .setFontColor(Theme.TEXT_PRIMARY)
+                            .setMarginBottom(10));
+                }
+
+                List<Attachment> attachments = allTasksAttachmentMap.get(task.getTaskId());
+
+                // Files
+                if (attachments != null && !attachments.isEmpty()) {
+                    submissionCell.add(new Paragraph("Files")
+                            .setBold()
+                            .setFontSize(12)
+                            .setFontColor(Theme.TEXT_PRIMARY)
+                            .setMarginBottom(5));
+
+                    for (Attachment file : attachments) {
+                        Table fileRow = new Table(UnitValue.createPercentArray(new float[]{7, 2, 1}))
+                                .setWidth(UnitValue.createPercentValue(100));
+
+                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
+                                .add(new Paragraph(file.getFileName())
+                                        .setFontSize(12)
+                                        .setFontColor(Theme.TEXT_PRIMARY)));
+
+                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
+                                .add(new Paragraph(formatFileSize(file.getSize()))
+                                        .setFontSize(12)
+                                        .setFontColor(Theme.TEXT_SECONDARY)));
+
+                        fileRow.addCell(new Cell().setBorder(Border.NO_BORDER)
+                                .add(new Paragraph("Download")
+                                        .setAction(PdfAction.createURI(file.getDownloadUrl()))
+                                        .setFontColor(new DeviceRgb(59, 130, 246))
+                                        .setFontSize(12)));
+
+                        submissionCell.add(fileRow);
+                    }
+                }
+
+                // Related Links
+                if (attachments != null && !attachments.isEmpty()) {
+                    submissionCell.add(new Paragraph("Related Links")
+                            .setBold()
+                            .setFontSize(12)
+                            .setFontColor(Theme.TEXT_PRIMARY)
+                            .setMarginTop(10)
+                            .setMarginBottom(5));
+
+                    for (Attachment file : attachments) {
+                        submissionCell.add(new Paragraph(file.getTaskReviewLink())
+                                .setFontColor(new DeviceRgb(59, 130, 246))
+                                .setFontSize(12)
+                                .setMarginBottom(5));
+                    }
+                }
+
+                taskCard.addCell(submissionCell);
+            }
+
+            document.add(taskCard);
+        }
+
+        private static String formatFileSize(Long size) {
+            if(size == null)return "N/A";
+            if (size < 1024) {
+                return size + " B"; // Bytes
+            } else if (size < 1024 * 1024) {
+                return String.format("%.2f KB", size / 1024.0); // KB
+            } else if (size < 1024 * 1024 * 1024) {
+                return String.format("%.2f MB", size / (1024.0 * 1024)); // MB
+            } else {
+                return String.format("%.2f GB", size / (1024.0 * 1024 * 1024)); // GB
+            }
+        }
+
 
         private static Table createStatusBadge(String status) {
             DeviceRgb[] colors = getStatusColors(status);
@@ -595,12 +642,10 @@ public class PdfService {
             Document document = new Document(pdfDoc, PageSize.A4);
             document.setMargins(12, 36, 72, 36);
 
-            // Register the FooterHandler
             pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE, new FooterHandler(document));
 
-            // Add content to the PDF
-            Header.add(document); // Custom method for adding header
-            addProjectInfo(document);       // Custom method for adding project info
+            Header.add(document);
+            addProjectInfo(document);
 
             // Add weeks data
             if (weekDataList != null && !weekDataList.isEmpty()) {
@@ -645,7 +690,7 @@ public class PdfService {
         leftColumnData.put("Mentor", groupData.getMentor().getName());
         System.out.println(groupData.getStudents());
         List<String> members2 = members.stream().map(Student::getUsername).toList();
-        leftColumnData.put("Members", members2.toString().substring(1, members2.toString().length()-1));
+        leftColumnData.put("Members", members2.toString().substring(1, members2.toString().length() - 1));
         leftColumnData.put("Group Leader", groupData.getGroupLeader());
 
         Map<String, String> rightColumnData = new LinkedHashMap<>();
@@ -745,7 +790,7 @@ public class PdfService {
         private LocalDate startDate;
         private LocalDate endDate;
 
-        public WeekData(int weekNumber, List<TaskData> tasks){
+        public WeekData(int weekNumber, List<TaskData> tasks) {
             this.weekNumber = weekNumber;
             this.tasks = tasks;
         }
@@ -754,6 +799,7 @@ public class PdfService {
     @Data
     @AllArgsConstructor
     public static class TaskData {
+        private String taskId;
         private String taskName;
         private String description;
         private List<String> assignees;

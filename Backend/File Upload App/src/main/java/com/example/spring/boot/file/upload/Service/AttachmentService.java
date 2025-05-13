@@ -21,6 +21,7 @@ public class AttachmentService {
 
     public Attachment saveAttachment(MultipartFile file, String taskId) throws Exception {
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+
         try {
             if(fileName.contains("..")) {
                 throw  new Exception("Filename contains invalid path sequence "
@@ -28,7 +29,7 @@ public class AttachmentService {
             }
 
             Attachment attachment
-                    = new Attachment(fileName,
+                    = new Attachment(file.getSize(),fileName,
                     file.getContentType(),
                     file.getBytes(),taskId, LocalDate.now(), LocalTime.now());
             return attachmentRepository.save(attachment);
