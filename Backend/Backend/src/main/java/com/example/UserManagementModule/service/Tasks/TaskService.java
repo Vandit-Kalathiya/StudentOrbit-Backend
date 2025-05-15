@@ -1,10 +1,12 @@
 package com.example.UserManagementModule.service.Tasks;
 
+import com.example.UserManagementModule.Exceptions.TaskAssignmentException;
 import com.example.UserManagementModule.dto.Task.CompleteTaskRequest;
 import com.example.UserManagementModule.dto.Task.CompleteTaskRubricRequest;
 import com.example.UserManagementModule.dto.Task.TaskRequest;
 import com.example.UserManagementModule.entity.Comment.Comment;
 import com.example.UserManagementModule.entity.Groups.Group;
+import com.example.UserManagementModule.entity.Student.Student;
 import com.example.UserManagementModule.entity.Task.Rubrics;
 import com.example.UserManagementModule.entity.Task.Task;
 import com.example.UserManagementModule.entity.Weeks.Week;
@@ -12,6 +14,8 @@ import com.example.UserManagementModule.repository.Task.RubricsRepository;
 import com.example.UserManagementModule.repository.Task.TaskRepository;
 import com.example.UserManagementModule.repository.Week.WeekRepository;
 import com.example.UserManagementModule.service.Group.FacultyGroupService;
+import com.example.UserManagementModule.service.Student.StudentService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -32,12 +36,14 @@ public class TaskService {
     private final WeekRepository weekRepository;
     private final TaskRepository taskRepository;
     private final RubricsRepository rubricsRepository;
+    private final StudentService studentService;
 
-    public TaskService(FacultyGroupService facultyGroupService, WeekRepository weekRepository, TaskRepository taskRepository, RubricsRepository rubricsRepository) {
+    public TaskService(FacultyGroupService facultyGroupService, WeekRepository weekRepository, TaskRepository taskRepository, RubricsRepository rubricsRepository, StudentService studentService) {
         this.facultyGroupService = facultyGroupService;
         this.weekRepository = weekRepository;
         this.taskRepository = taskRepository;
         this.rubricsRepository = rubricsRepository;
+        this.studentService = studentService;
     }
 
     @CachePut(value = "tasks", key = "#weekNo + '_' + #groupId")
@@ -140,6 +146,21 @@ public class TaskService {
         task.setName(taskRequest.getTaskName());
         task.setDescription(taskRequest.getTaskDescription());
         task.setStatus(taskRequest.getTaskStatus());
+        return taskRepository.save(task);
+    }
+
+    public Task assignAssigneesToTask(String taskId, List<String> assigneeIds) {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + taskId));
+        List<Student> assignees = task.getAssignee();
+        for (String assigneeId : assigneeIds) {
+            if (assignees.stream().anyMatch(a -> a.getId().equals(assigneeId))) {
+                throw new TaskAssignmentException("Assignee " + assigneeId + " already assigned to task.");
+            }
+            Student student = studentService.getStudentById(assigneeId)
+                    .orElseThrow(() -> new EntityNotFoundException("Student not found with id: " + assigneeId));
+            assignees.add(student);
+        }
+        task.setAssignee(assignees);
         return taskRepository.save(task);
     }
 
