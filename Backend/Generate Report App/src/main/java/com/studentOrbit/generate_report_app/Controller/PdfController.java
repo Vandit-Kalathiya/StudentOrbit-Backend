@@ -2,6 +2,7 @@ package com.studentOrbit.generate_report_app.Controller;
 
 import com.studentOrbit.generate_report_app.Helper.MarksReportGenerateRequest;
 import com.studentOrbit.generate_report_app.Helper.PdfGenerateRequest;
+import com.studentOrbit.generate_report_app.Model.WeekData;
 import com.studentOrbit.generate_report_app.Service.PdfService;
 import com.studentOrbit.generate_report_app.Service.StudentPerformanceReport;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,9 +30,9 @@ public class PdfController {
     @PostMapping("/create")
     public ResponseEntity<InputStreamResource> createPdf(@RequestBody PdfGenerateRequest pdfGenerateRequest, HttpServletRequest request) {
         System.out.println("Pdf : "+pdfGenerateRequest);
-        List<PdfService.WeekData> weekDataList = pdfService.fetchWeekData(pdfGenerateRequest, request);
+        List<WeekData> weekDataList = pdfService.fetchWeekData(pdfGenerateRequest, request);
         System.out.println(weekDataList);
-        ByteArrayInputStream byteArrayInputStream = pdfService.createPdf("21CE121", weekDataList);
+        ByteArrayInputStream byteArrayInputStream = pdfService.createPdf(pdfGenerateRequest.getIdentifier(), weekDataList);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Disposition", "inline; filename=StudentOrbit.pdf");

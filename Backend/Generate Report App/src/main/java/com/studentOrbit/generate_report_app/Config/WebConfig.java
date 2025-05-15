@@ -51,10 +51,8 @@ public class WebConfig {
 
         // Add message converters
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(Arrays.asList(
-                MediaType.APPLICATION_JSON,
-                new MediaType("application", "*+json")
-        ));
+        converter.setSupportedMediaTypes(List.of(
+                MediaType.ALL));
         restTemplate.getMessageConverters().add(converter);
 
         return restTemplate;

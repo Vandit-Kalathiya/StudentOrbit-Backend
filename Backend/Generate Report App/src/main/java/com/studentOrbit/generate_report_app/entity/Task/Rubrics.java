@@ -2,10 +2,7 @@ package com.studentOrbit.generate_report_app.entity.Task;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -25,5 +22,6 @@ public class Rubrics implements Serializable {
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "task_id")
+    @ToString.Exclude
     private Task task;
 }
